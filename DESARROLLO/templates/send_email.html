@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<center>
+    <h2 class="caret-sombra-red">Enviar Correo</h2>
+    <form method="post" action="/web/email/send">
+        <table class="table table-striped table-bordered border=1 tabla" style="width:40%;" BORDER=1>
+            <tr>
+                <td>Para:</td>
+                <td><input type="email" name="to" required></td>
+            </tr>
+            <tr>
+                <td>Asunto:</td>
+                <td><input type="text" name="subject" required></td>
+            </tr>
+            <tr>
+                <td>Mensaje:</td>
+                <td><textarea cols="60" rows="10" name="message" required></textarea></td>
+            </tr>
+        </table>
+        <input type="submit" value="Enviar" class="btn btn-outline-primary btn-sm" style="width:20%;">
+        <a href="/novedad" class="btn btn-outline-warning btn-sm" style="width:20%;">Cancelar</a>
+    </form>
+</center>
+{% endblock content %}

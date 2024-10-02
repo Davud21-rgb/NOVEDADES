@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<center>
+    <h2 class="caret-sombra-red">{{msg}}</h2>
+    <center>
+<form method=post action="/web/email">
+<table class="table table-striped table-bordered border=1 tabla" style="width:40%;" BORDER=1>
+{%for dato in cadena%}
+<td>FECHA</td><td>{{dato.FECHA}}</td></tr>
+<td>DESCRIPCION</td><td ><textarea cols=60 rows=4 name=descripcion>{{dato.DESCRIPCION}}</textarea></td></tr> 
+<td>RESPUESTA</td><td><textarea cols=60 rows=4  name=respuesta></textarea></td></tr> 
+{%endfor%}
+</table>
+<!-- <a href="/respuesta" class="btn btn-outline-primary btn-sm" style="width:20%;" target="centro">RESPONDER</a> -->
+<input type="submit" value="RESPONDER" class="btn btn-outline-primary btn-sm" style="width:20%;" target="centro">
+<a href="/novedad" class="btn btn-outline-warning  btn-sm" style="width:20%;" target="centro">CANCELAR</a>
+</form>
+</div>
+
+{% endblock content %}

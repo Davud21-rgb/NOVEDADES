@@ -1,0 +1,83 @@
+ul, #myUL {
+    list-style-type: none;
+  }
+  
+  #myUL {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .caret {
+    cursor: pointer;
+    -webkit-user-select: none; /* Safari 3.1+ */
+    -moz-user-select: none; /* Firefox 2+ */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none;
+    font-size: 12pt;
+    font-weight: bold;
+  }
+  a{
+    text-decoration:none;
+  }
+  .caret::before {
+    content: &#128448;";
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 12pt;
+    font-weight: bold;
+  }
+  
+  .caret-down::before {
+    content: "";
+    -ms-transform: rotate(90deg); /* IE 9 */
+    -webkit-transform: rotate(90deg); /* Safari */'
+    transform: rotate(90deg);
+    font-size: 14pt;
+  font-weight: bold;  
+  }
+  .caret-sombra-red{
+    text-shadow: 1px 1px 2px black;color:red;
+  }
+  .nested {
+    display: none;
+    font-size: 10pt;
+  font-weight: bold;
+  }
+  .caret-sombra-green{
+    text-shadow: 1px 1px 2px black;color:rgb(0, 255, 0);
+  }
+  .nested {
+    display: none;
+  }
+  
+  .active {
+    display: block;
+  }
+.tabla{
+  font-size: 8pt;
+  -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+   box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+}
+.tabla1{
+  font-size: 8pt;margin-right: 1rem;border:1;border-radius: 10px 10px 10px 10px;
+-moz-border-radius: 10px 10px 10px 10px;
+-webkit-border-radius: 10px 10px 10px 10px;
+border: 2px solid #000000;-webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+-moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);padding-left:20px;text-decoration:none;
+}
+  body::-webkit-scrollbar {
+    width: 22px;               /* width of the entire scrollbar */
+  }
+  
+  body::-webkit-scrollbar-track {
+    background: rgb(6, 228, 36);        /* color of the tracking area */
+  }
+  
+  body::-webkit-scrollbar-thumb {
+    background-color: rgb(31, 3, 3);    /* color of the scroll thumb */
+    border-radius: 10px;       /* roundness of the scroll thumb */
+    border: 5px solid rgba(4, 156, 80, 0.123);  /* creates padding around scroll thumb */
+  }

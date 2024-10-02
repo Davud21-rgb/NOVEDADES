@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<center>
+    <h2 class="caret-sombra-red">{{msg}}</h2>
+<table class="table table-striped table-bordered tabla1" style="width:30%;" BORDER=1>
+    <th><b>TIPO</b></th>
+    <th><b>CANTIDAD</b></th>
+    </tr>
+    {% if hay == 1  %}
+    {% for datos in cadena %}
+    
+    <td>{{datos.TIPO}}</td>
+    <td>{{datos.CANTIDAD}}</td>
+
+    
+ </tr>
+ {%endfor%}
+ {%endif%}
+ 
+</table>
+</div>
+
+
+{% endblock content %}

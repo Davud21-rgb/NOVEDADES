@@ -1,0 +1,21 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN"
+   "http://www.w3.org/TR/html4/frameset.dtd">
+<HTML>
+<HEAD>
+<TITLE>Un documento simple con marcos</TITLE>
+</HEAD>
+<FRAMESET cols="30%, 70%" frameborder=0 noResize = true>
+  <FRAMESET rows="430" >
+      <FRAME src="/menu" name=menu>
+  </FRAMESET>
+<FRAMESET rows="150, 450,130">
+      <FRAME src="/banner" name=banner>
+      <FRAME src="/centro" name=centro scrolling=yes>
+      <FRAME src="/footer" name=footer>
+  </FRAMESET>
+  
+  <NOFRAMES>
+      <P>Este conjunto no puede desplegar marcos
+   </NOFRAMES>
+</FRAMESET>
+</HTML>

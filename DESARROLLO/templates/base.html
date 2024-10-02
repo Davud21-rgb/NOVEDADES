@@ -1,0 +1,40 @@
+
+<!doctype html>
+<html>
+  <head>
+{% block head %}
+<link href="{{url_for('static',filename='css/bootstrap.min.css')}}" rel="stylesheet">
+<link href="{{url_for('static',filename='css/tmenu.css')}}" rel="stylesheet">
+<link href="{{url_for('static',filename='css/Estilo.css')}}" rel="stylesheet">
+<script src="{{url_for('static',filename='js/tmenu.js')}}"></script>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<script src="https://kit.fontawesome.com/yourcode.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="{{url_for('static',filename='js/MiJs.js')}}"></script>
+{% endblock %}
+  </head>
+  <body>
+
+  </div>
+  
+    <div style="overflow:auto" class="sena-p7 sena-card3-none">
+    {% block content %}{% endblock content %}
+    {% for massage in get_flashed_messages() %}
+        <div class="container mt-3">
+            <div class="row">
+              <div class="col-md-6 mx-auto">
+                <div class="alert alert-success" role="alert">
+                  {{ massage }}
+                </div>
+                 
+              </div>
+            </div>
+        </div>
+
+        {% endfor %}
+  </div>   
+   <br>
+  </body>
+</html>
