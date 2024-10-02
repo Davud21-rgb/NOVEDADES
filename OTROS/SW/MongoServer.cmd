@@ -1,0 +1,1 @@
+start https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-6.0.1-signed.msi
