@@ -4,8 +4,10 @@ from flask_cors import CORS
 import json
 import smtplib
 from email.mime.multipart import MIMEMultipart
+from flask_sqlalchemy import SQLAlchemy
 from email.mime.text import MIMEText
 import time
+import os
 
 
 from flask_mail import Mail, Message
@@ -70,6 +72,11 @@ class Usuario:
         self.res=requests.get(self.url+clave+dat)
         data1=json.loads(self.res.content)
         return data1
+    def AsiAmbi(self, dat, clave="/actualizar/"):
+        extend = str(dat)
+        self.res = requests.put(self.url+clave+extend)
+        dat = json.loads(self.res.content)
+        return dat
     # va al api 8000:/i/.. dependiendo lo que traiga clave
     def Inserte(self,data,clave="/i"):
         print(self.url+clave)
@@ -139,20 +146,45 @@ def login():
             print('se logeo bien')
             error = "Bienvenido"
             flash(error)
-            return redirect(url_for("inicio"))
+            return redirect(url_for("dirigir"))
 
     return render_template("login.html")
 
+#Asignacion de ambientes
+@app.route("/asignacion", methods=['GET', 'POST'])
+def asignacion():
+    dat=session['id_user']
+    u1 = Usuario()
+    if request.method == 'POST':
+        asignado = request.form["asignado"]
+        user_data = {
+             "ambiente": asignado
+        }
+        print(asignado)
+        print(dat)
+        u1.AsiAmbi(user_data, dat)
+    return render_template("asignar.html")
+@app.route("/noasig", methods=['GET', 'POST'])
+def dirigir():
+    id=session['id_user']
+    u1 = Usuario()
+    c=u1.ConsultAmbi('ambiente2','IDCUENTADANTE',id)
+    if c == None:
+        return redirect(url_for("asignacion"))
+    else:
+        return redirect(url_for("inicio"))
+    
+
 # Para crear nuevo elemento
-@app.route("/nuevo_elemento", methods=['GET', 'POST'])
-def nuevo_elemento():
+@app.route("/nuevo_elementoi", methods=['GET', 'POST'])
+def nuevo_elementoi():
     u1 = Usuario()
     datos = u1.ConNovel('0')
     if request.method == 'POST':
         ambiente = request.form["ambiente"]
         estacion = request.form["estaciones"]
         serial = request.form["serial"]
-        tip = request.form["tipo"]
+        tip = request.form["nombre"]
         tipo = tip.upper()
         estado = request.form["estado"]
 
@@ -165,34 +197,36 @@ def nuevo_elemento():
             "ambiente": ambiente,
             "estaciones": estacion,
             "serial": serial,
-            "tipo": tipo,
+            "nombre": tipo,
             "estado": estado
         }
+        # print("****>",user_data)
+        # cadena=u1.ConsultAmbi(ambiente, estacion, tipo)
+        # print("....>>>>>>",cadena)
         
-        cadena=u1.ConsultAmbi(ambiente, estacion, tipo)
-        print(cadena)
-        if 1==1:
-            u1.Inserte(user_data, clave="/i/e")
-            mensaje = "Elemento registrado correctamente"
-            flash(mensaje)
-            
-            return redirect(url_for("equipamiento", amb=ambiente))
+        # if 1==1:
+        u1.Inserte(user_data, clave="/i/e")
+        mensaje = "Elemento registrado correctamente"
+        flash(mensaje)
+    return redirect("/r/a/1")
         
-        else:
-            print("Elemento ya existe")
-            mensaje = "Elementos existe"
-            flash(mensaje)
-            return redirect(url_for("equipamiento", amb=ambiente))
-    return render_template("nuevo_elemento.html", datos=datos)
-
-
+@app.route("/nuevo_elemento", methods=['GET', 'POST'])
+def nuevo_elemento():
+    u1=Usuario()
+    datos=u1.ListarJson("/items/0")
+    return render_template("nuevo_elemento.html",datos=datos)
+        
 
 @app.route("/home")
 def inicio():
     return render_template("index.html")
 @app.route("/menu")
 def menu():
-    return render_template("menu.html")
+    id=session['id_user']
+    u1 = Usuario()
+    c=u1.ConsultAmbi('ambiente2','IDCUENTADANTE',id)
+    x=c[1]
+    return render_template("menu.html", x=x)
 @app.route("/banner")
 def banner():
     return render_template("banner.html")

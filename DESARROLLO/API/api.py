@@ -119,8 +119,8 @@ def Consult(tap,id):
 # consultar x datos x tablas
 @app.route("/items/<amb>")
 def infoD(amb):    
-    if amb !="0":
-        a = f"select "
+    if amb =="1":
+        a = f"select * from AMBIENTE2 "
         sql= a
     elif amb=="0":
         a = f"select * from AMBIENTE"
@@ -138,6 +138,13 @@ def actualizanov(nove):
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
     return(todo)
+
+@app.route("/elem/ambiente2/<col>/<dat>")
+def ambiente2(col,dat):    
+    sql="select * from AMBIENTE2 where "+col+"='"+dat+"'"
+    u1=Usuario(app.bd)
+    todo=u1.consultarUno(sql)
+    return(todo)
 #CODIGO PARA INSERTAR / DAVID
 #INSERTAR REGISTER
 @app.route("/i/r", methods = ['POST'])
@@ -145,29 +152,61 @@ def InsertRegis():
     datos=request.get_json()
     email=datos['email']
     password=datos['password']
-    sql="insert into REGISTER values (null, '"+email+"','"+password+"','1')"
+    sql="insert into REGISTER values (null, '"+email+"','"+password+"','1','null')"
     con=sqlite3.connect("nov.db")  
     cursor=con.cursor()
     cursor.execute(sql)
     con.commit()
     con.close()
     return(sql)
+
+#ACUTALIZAR ID
+@app.route("/actualizar/<dat>", methods = ['PUT', 'POST'])
+def Actu(dat):
+    datos==request.get_json()
+    Actualizar=datos['ambiente']
+    sql="update AMBIENTE2 set IDCUENTADANTE="+dat+" where AMBIENTE="+Actualizar
+    print(sql)
+    con=sqlite3.connect("nov.db")
+    cursor=con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()
+    return(sql)
+
+
+#ASIGNAR AMBIENTE
+@app.route("/asigamb", methods = ['UPDATE'])
+def AsigAmb():
+    datos=request.get_json()
+    id=datos['id']
+    amb=datos['amb']
+    sql="update REGISTER set ambasing="+amb+" where Id_regis="+id
+    con=sqlite3.connect("nov.db")  
+    cursor=con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()
+    return(sql)
+
 #INSERTAR EQUIPAMIENTO
 @app.route("/i/e" ,methods = ['POST'])
 def InsertEqui(): 
         datos=request.get_json()
         ambie=datos['ambiente']
-        tip=datos['tipo']
-        tipo= str(tip)
+        tip=datos['nombre']
         estado=datos['estado']
         seri=datos['serial']
         estacion=datos['estaciones']
-        a = f"insert into EQUIPAMIENTO values(null, {ambie},{tipo},{estado},{seri}, {estacion})"
-        sql= a
-        print(sql)
+        # a = f"insert into EQUIPAMIENTO values(null, {ambie},{tip},{estado},{seri}, {estacion})"
+        # sql= a
+        # 
         con=sqlite3.connect("nov.db")  
         cursor=con.cursor()
-        cursor.execute(f"insert into EQUIPAMIENTO values(null, {ambie},{tipo},{estado},{seri}, {estacion})")
+        
+        sql=f"insert into EQUIPAMIENTO(idambiente,nombre, estado,serial,estacion) values( {ambie},{tip},{estado},'{seri}', {estacion})"
+        print(sql)
+        cursor.execute(sql)
         con.commit()
         con.close()
         return(sql)
