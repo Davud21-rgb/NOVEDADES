@@ -1,6 +1,8 @@
 import sqlite3
 import json
 
+import requests
+
 configura={
     "STATIC_FOLDERS":"static",
     "TEMPLATE_FOLDER":"templates",
@@ -11,7 +13,7 @@ configura={
     "PUERTOAPP":8000,
     "MODULO":"salud",
     "SMBD":"SQLITE",
-    "DB":"./nov.db"
+    "DB":"./novedades.db"
 }
 class Usuario:
     
@@ -44,9 +46,8 @@ class Usuario:
         res=cur.execute(sql)
         primer_resultado = res.fetchone()
         return json.dumps(primer_resultado)
-    def Inserte(self,data,clave="/i"):
-        print(self.url+clave)
-        response = requests.post(self.url+clave, json=data)
+    def Inserte(self,data):
+        response = requests.post(self.url+"/i", json=data)
     def Borra(self,cual,clave):
         response = requests.delete(self.url+clave+str(cual))
     def Actualiza(self,data,clave="/u"):

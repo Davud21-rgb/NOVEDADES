@@ -10,19 +10,27 @@ def create_app():
     return app
 
 app = create_app() # CREATE THE FLASK APP
-app.bd="nov.db"
+app.bd="novedades.db"
 
-@app.route("/apilogin/<dat>")
-def datos(dat):
-    sql=f"select * from REGISTER where email='{dat}'"
+@app.route("/apilogin/<data>")
+def datos(data):
+    sql=f"select * from USUARIO where email='{data}'"
     u1=Usuario(app.bd)
     todo=u1.consultarUno(sql)
     return(todo)
+
+
+@app.route("/ambi")
+def ambi():
+    sql = f"SELECT * FROM AMBIENTE"
+    u1=Usuario(app.bd)
+    todo=u1.ConsultarJson(sql)
+    return(todo)
+
     
 
 @app.route("/ln")
 def listar():    
-    
     sql="select * from vambiente"  #usuarios where corroe={2}   if 
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
@@ -31,7 +39,6 @@ def listar():
     # return json.dumps(todo)
 @app.route("/ln/<ambi>")
 def listarOne(ambi):    
-    
     sql="select * from vambiente where idambiente="+ambi+" and padre is null"
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
@@ -147,18 +154,28 @@ def ambiente2(col,dat):
     return(todo)
 #CODIGO PARA INSERTAR / DAVID
 #INSERTAR REGISTER
-@app.route("/i/r", methods = ['POST'])
+@app.route("/i", methods=['POST'])
 def InsertRegis():
-    datos=request.get_json()
-    email=datos['email']
-    password=datos['password']
-    sql="insert into REGISTER values (null, '"+email+"','"+password+"','1','null')"
-    con=sqlite3.connect("nov.db")  
-    cursor=con.cursor()
-    cursor.execute(sql)
-    con.commit()
-    con.close()
-    return(sql)
+    datos = request.get_json()
+    nombre = datos['nombre']
+    rol = datos['rol']
+    email = datos['email']
+    password = datos['password']
+    
+    sql = "INSERT INTO USUARIO (nombre, rol, email, password) VALUES (?, ?, ?, ?)"
+    
+    con = sqlite3.connect("novedades.db")
+    cursor = con.cursor()
+    
+    try:
+        cursor.execute(sql, (nombre, rol, email, password))
+        con.commit()
+        return "User inserted successfully", 200
+    except sqlite3.Error as e:
+        return f"An error occurred: {e}", 500
+    finally:
+        con.close()
+
 
 #ACUTALIZAR ID
 @app.route("/actualizar/<dat>", methods = ['PUT', 'POST'])
@@ -167,7 +184,7 @@ def Actu(dat):
     Actualizar=datos['ambiente']
     sql="update AMBIENTE2 set IDCUENTADANTE="+dat+" where AMBIENTE="+Actualizar
     print(sql)
-    con=sqlite3.connect("nov.db")
+    con=sqlite3.connect("novedades.db")
     cursor=con.cursor()
     cursor.execute(sql)
     con.commit()
@@ -181,8 +198,8 @@ def AsigAmb():
     datos=request.get_json()
     id=datos['id']
     amb=datos['amb']
-    sql="update REGISTER set ambasing="+amb+" where Id_regis="+id
-    con=sqlite3.connect("nov.db")  
+    sql="update USUARIO set ambasing="+amb+" where Id_regis="+id
+    con=sqlite3.connect("novedades.db")  
     cursor=con.cursor()
     cursor.execute(sql)
     con.commit()
@@ -201,7 +218,7 @@ def InsertEqui():
         # a = f"insert into EQUIPAMIENTO values(null, {ambie},{tip},{estado},{seri}, {estacion})"
         # sql= a
         # 
-        con=sqlite3.connect("nov.db")  
+        con=sqlite3.connect("novedades.db")  
         cursor=con.cursor()
         
         sql=f"insert into EQUIPAMIENTO(idambiente,nombre, estado,serial,estacion) values( {ambie},{tip},{estado},'{seri}', {estacion})"
@@ -222,7 +239,7 @@ def CrearNoved():
     padre=datos['PADRE']
     match = descri1.rfind   ("[PROCESO]")
     sql1="insert into NOVEDADES(idAMBIENTE, DESCRIPCION, ESTADO,PADRE) values("+str(idA)+",'"+descri+"',1,"+str(idN)+")"
-    con=sqlite3.connect("nov.db")  
+    con=sqlite3.connect("novedades.db")  
     cursor=con.cursor()
 
     if match>0:
@@ -247,7 +264,7 @@ def CerrarNoved():
     estado=datos['ESTADO']
     padre=datos['PADRE']
     sql1="insert into NOVEDADES(idAMBIENTE, DESCRIPCION, ESTADO,PADRE) values("+str(idA)+",'"+descri+"',2,"+str(idN)+")"
-    con=sqlite3.connect("nov.db")  
+    con=sqlite3.connect("novedades.db")  
     cursor=con.cursor()
     sql2="update NOVEDADES set ESTADO=2,DESCRIPCION=concat(DESCRIPCION,'[CERRADA]')  where PADRE="+str(idN)
     cursor.execute(sql1)
@@ -256,6 +273,19 @@ def CerrarNoved():
     con.close()
     print(sql1)
     return(sql2)
+
+
+@app.route("/nov/proceso", methods = ['GET'])
+def novProceso():
+    sql = "SELECT * FROM NOVEDADES WHERE ESTADO = 1"
+    con=sqlite3.connect("novedades.db")  
+    cursor=con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()
+    return(sql)
+
+
     
   
 if __name__ == '__main__':

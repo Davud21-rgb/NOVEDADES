@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <hr>
-    <center><h3 class="caret-sombra-red">NOVEDADES EN EL AMBIENTE DE FORMACION -CUENTADANTE- <br>AMBIENTE ASIGNADO:{{ x }}</h3></center>
+    <center><h3 class="caret-sombra-red">NOVEDADES EN EL AMBIENTE DE FORMACION -CUENTADANTE- <br>AMBIENTE ASIGNADO: {%for name in classroom_names%}{{name}}{%endfor%}</h3></center>
  <hr>
     <div class="w3-margin tabla1">
 

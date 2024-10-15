@@ -57,9 +57,26 @@ class Usuario:
             return False  
         
     def Consultlogin(self, dat, clave="/apilogin/"):
-        self.res=requests.get(self.url+clave+dat)
-        data1=json.loads(self.res.content)
-        return data1
+        try:
+            # Send the request
+            self.res = requests.get(self.url + clave + dat)
+
+            # Check if the request was successful
+            if self.res.status_code == 200:
+                # Try to decode the JSON response
+                try:
+                    data1 = json.loads(self.res.content)
+                    return data1
+                except json.JSONDecodeError:
+                    print("Error decoding JSON, response is not valid JSON.")
+                    return None
+            else:
+                print(f"Error: Received status code {self.res.status_code}")
+                return None
+        except requests.RequestException as e:
+            # Handle any request-related errors (connection, timeout, etc.)
+            print(f"Request failed: {e}")
+            return None
     
     def ConsultAmbi(self, dat, e, n, clave="/elem/"):
         extend= f"{dat}/{e}/{n}"
@@ -78,9 +95,8 @@ class Usuario:
         dat = json.loads(self.res.content)
         return dat
     # va al api 8000:/i/.. dependiendo lo que traiga clave
-    def Inserte(self,data,clave="/i"):
-        print(self.url+clave)
-        response = requests.post(self.url+clave, json=data)
+    def Inserte(self, dat):
+        response = requests.post(self.url+"/i", json=dat)
     def Borra(self,cual,clave):
         response = requests.delete(self.url+clave+str(cual))
     def Actualiza(self,data,clave="/u"):
@@ -96,59 +112,70 @@ class Usuario:
 @app.route("/register", methods=['POST', 'GET'])
 def register():
     if request.method == 'POST':
-
+        nombre = request.form["nombre"]
+        rol = request.form["rol"]
         email = request.form["email"]
         password = request.form["password"]
         
         if not email or not password:
-            print("Faltan datos")
-            mensaje="Faltan datos"
+            mensaje = "Faltan datos"
             flash(mensaje)
+            return redirect(url_for("register"))
         
         user_data = {
+            "nombre": nombre,
+            "rol": rol,
             "email": email,
             "password": password
         }
-        u1 = Usuario()
-        cadena=u1.Consultlogin(email)
         
-        if cadena==None:
-            u1.Inserte(user_data, clave="/i/r")
+        u1 = Usuario()
+        existing_user = u1.Consultlogin(email)
+        
+        if existing_user is None:
+            u1.Inserte(user_data)  # This sends data to the API via POST
             mensaje = "Usuario registrado correctamente"
             flash(mensaje)
-            
             return redirect(url_for("login"))
-            
         else:
             mensaje = "Usuario ya existe"
             flash(mensaje)
-            return redirect(url_for("login"))
+            return redirect(url_for("register"))
+    
     return render_template("register.html")
+
 
 #vista logeo // esta vista quedo siendo la principal
 @app.route("/", methods=['POST','GET'])
 def login():
-
     if request.method == 'POST':
-        mail = request.form["email"]
-        passwords = request.form["password"]
-        print('aqui vot') 
-        u1=Usuario()
-        cadena=u1.Consultlogin(mail)
-        if cadena==None:
-            error = "No existe el usuario"
+        mail = request.form.get("email")
+        passwords = request.form.get("password")
+
+        # Check for empty form fields
+        if not mail or not passwords:
+            error = "Please enter both email and password."
+            flash(error)
+            return redirect(url_for("login"))
+
+        u1 = Usuario()
+        cadena = u1.Consultlogin(mail)
+
+        if not cadena:  # If no user is found
+            error = "No such user found."
             flash(error)
         else:
-            session.clear()
-            session['id_user']= cadena[0]
+            # Successful login: store user details in session
+            session['idUSUARIO'] = cadena[0]
             session['name'] = cadena[1]
             session['rol'] = cadena[3]
-            print('se logeo bien')
-            error = "Bienvenido"
-            flash(error)
-            return redirect(url_for("dirigir"))
+
+            flash("Welcome!")
+            # Redirect to /menu after successful login
+            return redirect(url_for("home"))
 
     return render_template("login.html")
+
 
 #Asignacion de ambientes
 @app.route("/asignacion", methods=['GET', 'POST'])
@@ -218,15 +245,13 @@ def nuevo_elemento():
         
 
 @app.route("/home")
-def inicio():
+def home():
     return render_template("index.html")
 @app.route("/menu")
 def menu():
-    id=session['id_user']
-    u1 = Usuario()
-    c=u1.ConsultAmbi('ambiente2','IDCUENTADANTE',id)
-    x=c[1]
-    return render_template("menu.html", x=x)
+    ambi = requests.get("http://127.0.0.1:8000/ambi").json()
+    classroom_names = [a['NOMBRE'] for a in ambi if 'NOMBRE' in a]
+    return render_template("menu.html",classroom_names=classroom_names)
 @app.route("/banner")
 def banner():
     return render_template("banner.html")
@@ -244,8 +269,7 @@ def footer():
     return render_template("footer.html")
 @app.route("/novedada", methods=["GET","POST"])
 def novedada():
-    u1=Usuario()
-    cadena=u1.ListarJson("/ln/a/1")
+    cadena = requests.get("http://127.0.0.1:8000/ln")
     llenos=1
     msg="NOVEDADES ABIERTAS"
     if cadena==False:
@@ -255,8 +279,7 @@ def novedada():
 
 @app.route("/novedadp")
 def novedadp():
-    u1=Usuario()
-    cadena=u1.ListarJson("/ln/p/1")
+    cadena=requests.get("http://127.0.0.1:8000/nov/proceso").json()
     msg="NOVEDADES EN PROCESO"
     
     if cadena==False:
