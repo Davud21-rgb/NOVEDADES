@@ -1,61 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
-<hr>
-    <center><h3 class="caret-sombra-red">NOVEDADES EN EL AMBIENTE DE FORMACION -CUENTADANTE- <br>AMBIENTE ASIGNADO: {%for name in classroom_names%}{{name}}{%endfor%}</h3></center>
- <hr>
-    <div class="w3-margin tabla1">
-
-<h3>
-<ul id="myUL">
-  <li><span class="caret">📁 <a href="/centro" target="centro">MENÚ PRINCIPAL</a></span>
-    <ul class="nested">
-      <li><span class="caret">&#10133; NOVEDADES</span>
-        <ul class="nested"> 
-          <li><i class='far  fa-window-restore'></i>
-            <a href="/novedada" target=centro>ABIERTAS</a>  </li>
-          <li><i class='far fa-window-restore'></i>
-          <a href="/novedadp" target=centro>EN PROCESO</a></li>
-          <li><i class='far  fa-window-restore'></i>
-            <a href="/novedadc" target=centro>CERRADA</a></li>
-    </ul>
-  </li>
+<div class="w3-margin tabla1">
+  <h3>
+    <ul id="myUL">
+      <li><span class="caret">📁 <a href="/centro" target="centro">MENÚ PRINCIPAL</a></span>
+        <ul class="nested">
+          <li><span class="caret">&#10133; NOVEDADES</span>
+            <ul class="nested">
+              <li><i class='far  fa-window-restore'></i>
+                <a href="/novedada" target=centro>ABIERTAS</a>
+              </li>
+              <li><i class='far fa-window-restore'></i>
+                <a href="/novedadp" target=centro>EN PROCESO</a>
+              </li>
+              <li><i class='far  fa-window-restore'></i>
+                <a href="/novedadc" target=centro>CERRADA</a>
+              </li>
+            </ul>
+          </li>
           <li><span class="caret">&#10133; EQUIPAMIENTO</span>
             <ul class="nested">
-              <li><i class='far fa-window-maximize'></i> <a href="/r/1" target=centro>RESUMEN DEL AMBIENTE</a></li>
-              <li><i class='far fa-window-maximize'></i> <a href="/r/a/1" target=centro>ELEMENTOS DEL AMBIENTE</a></li>
+              <!-- <li><i class='far fa-window-maximize'></i> <a href="/r/1" target=centro>RESUMEN DEL AMBIENTE</a></li> -->
+              <li><i class='far fa-window-maximize'></i> <a href="/ele" target=centro>ELEMENTOS DEL AMBIENTE</a></li>
               <li><i class='far fa-plus-square'></i> <a href="/nuevo_elemento" target=centro>NUEVO ELEMENTO</a></li>
             </ul>
           </li>
-  </li>  
-        <li><span class="caret">&#10133; CARGA MASIVA</span>
-            <ul class="nested">
-              <li><i class='fas fa-power-off'></i> ELEMENTOS</li>
-            </ul>
-          </li>
-  
-        <li><span class="caret">&#10133; CONFIGURACION</span>
-            <ul class="nested">
-              <li><i class='fas fa-wrench'></i><a href="/send_email" target="centro">CUENTADANTE</a></li>
-            </ul>
-          </li>
+      </li>
+      <li><span class="caret">&#10133; CARGA MASIVA</span>
+        <ul class="nested">
+          <li><i class='fas fa-power-off'></i> ELEMENTOS</li>
         </ul>
-  </li>  
+      </li>
+
+      <li><span class="caret">&#10133; CONFIGURACION</span>
+        <ul class="nested">
+          <li><i class='fas fa-wrench'></i><a href="/register" target="centro">CUENTADANTE</a></li>
+        </ul>
+      </li>
     </ul>
-  </li>
-</ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
 </div>
 </div>
 <script>
-var toggler = document.getElementsByClassName("caret");
-var i;
+  var toggler = document.getElementsByClassName("caret");
+  var i;
 
-for (i = 0; i < toggler.length; i++) {
-  toggler[i].addEventListener("click", function() {
-    this.parentElement.querySelector(".nested").classList.toggle("active");
-    this.classList.toggle("caret-down");
-  });
-}
+  for (i = 0; i < toggler.length; i++) {
+    toggler[i].addEventListener("click", function () {
+      this.parentElement.querySelector(".nested").classList.toggle("active");
+      this.classList.toggle("caret-down");
+    });
+  }
 </script>
 
 {% endblock content %}
-

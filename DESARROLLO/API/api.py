@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,redirect
+from flask import Flask, jsonify,render_template,request,redirect
 import requests
 from flask_cors import CORS
 import sqlite3
@@ -22,24 +22,106 @@ def datos(data):
 
 @app.route("/ambi")
 def ambi():
-    sql = f"SELECT * FROM AMBIENTE"
+    sql = "SELECT * FROM AMBIENTE WHERE IDCUENTADANTE IS NULL"
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
     return(todo)
 
+@app.route("/ambis")
+def ambi2():
+    sql = "SELECT * FROM AMBIENTE"
+    u1=Usuario(app.bd)
+    todo=u1.ConsultarJson(sql)
+    return(todo)
+
+@app.route("/allClassrooms")
+def classrooms():
+    sql = "SELECT idAMBIENTE FROM AMBIENTE"
+    u1=Usuario(app.bd)
+    todo=u1.ConsultarJson(sql)
+    return(todo)
+
+@app.route("/novedadesA")
+def listar():
+    sql = """
+    SELECT DISTINCT
+        n.idNOVEDADES,
+        e.ESTACION AS estacion,
+        n.FECHA AS fecha,
+        n.DESCRIPCION AS descripcion
+    FROM NOVEDADES n
+    JOIN AMBIENTE a ON n.idAMBIENTE = a.idAMBIENTE
+    JOIN EQUIPAMIENTO e ON a.idAMBIENTE = e.idAMBIENTE
+    WHERE n.ESTADO = 0;
+    """
     
+    print(f"Executing SQL: {sql}")  # Debug output
+    
+    u1 = Usuario(app.bd)
+    todo = u1.ConsultarJson(sql)
+    
+    if not todo:
+        print("No records found.")  # Log if no records found
+    
+    return jsonify(todo)  # Return JSON response
 
-@app.route("/ln")
-def listar():    
-    sql="select * from vambiente"  #usuarios where corroe={2}   if 
-    u1=Usuario(app.bd)
-    todo=u1.ConsultarJson(sql)
-    return(todo)
-     
-    # return json.dumps(todo)
-@app.route("/ln/<ambi>")
+
+@app.route("/novedadesP")
+def listar2():
+    sql = """
+    SELECT DISTINCT
+        n.idNOVEDADES,
+        e.ESTACION AS estacion,
+        n.FECHA AS fecha,
+        n.DESCRIPCION AS descripcion,
+        e.OBSERVACION AS observacion
+    FROM NOVEDADES n
+    JOIN AMBIENTE a ON n.idAMBIENTE = a.idAMBIENTE
+    JOIN EQUIPAMIENTO e ON a.idAMBIENTE = e.idAMBIENTE
+    WHERE n.ESTADO = 1;
+    """
+    
+    print(f"Executing SQL: {sql}")  # Debug output
+    
+    u1 = Usuario(app.bd)
+    todo = u1.ConsultarJson(sql)
+    
+    if not todo:
+        print("No records found.")  # Log if no records found
+    
+    return jsonify(todo)  # Return JSON response
+
+
+
+@app.route("/novedadesC")
+def listar3():
+    sql = """
+    SELECT DISTINCT
+        n.idNOVEDADES,
+        e.ESTACION AS estacion,
+        n.FECHA AS fecha,
+        n.DESCRIPCION AS descripcion,
+        v.ESTADO AS estado
+    FROM NOVEDADES n
+    JOIN AMBIENTE a ON n.idAMBIENTE = a.idAMBIENTE
+    JOIN EQUIPAMIENTO e ON a.idAMBIENTE = e.idAMBIENTE
+    JOIN VAMBIENTE v ON n.idNOVEDADES = v.idNOVEDADES
+    WHERE v.ESTADO = 'CERRADA';
+    """
+    
+    print(f"Executing SQL: {sql}")  # Debug output
+    
+    u1 = Usuario(app.bd)
+    todo = u1.ConsultarJson(sql)
+    
+    if not todo:
+        print("No records found.")  # Log if no records found
+    
+    return jsonify(todo)  # Return JSON response
+
+@app.route("/ss")
 def listarOne(ambi):    
-    sql="select * from vambiente where idambiente="+ambi+" and padre is null"
+    sql="select * from vambiente where idambiente="+ambi+""
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
     return(todo)
@@ -101,6 +183,14 @@ def equipamiento(amb):
     todo=u1.ConsultarJson(sql)
     return(todo)
 
+
+@app.route("/allElements")
+def allEle():
+    sql = "select * from VEQUIPAMIENTO"
+    u1=Usuario(app.bd)
+    todo=u1.ConsultarJson(sql)
+    return(todo)
+
 @app.route("/elem/<amb>/<e>/<n>")
 def elemento(amb,e,n):    
     if amb !="0":
@@ -155,42 +245,59 @@ def ambiente2(col,dat):
 #CODIGO PARA INSERTAR / DAVID
 #INSERTAR REGISTER
 @app.route("/i", methods=['POST'])
-def InsertRegis():
+def InserteUsuario():
     datos = request.get_json()
     nombre = datos['nombre']
     rol = datos['rol']
     email = datos['email']
     password = datos['password']
-    
+
     sql = "INSERT INTO USUARIO (nombre, rol, email, password) VALUES (?, ?, ?, ?)"
-    
     con = sqlite3.connect("novedades.db")
     cursor = con.cursor()
-    
+
     try:
         cursor.execute(sql, (nombre, rol, email, password))
         con.commit()
-        return "User inserted successfully", 200
+        user_id = cursor.lastrowid
+        return jsonify({"id": user_id, "message": "User inserted successfully"}), 200 # Return the ID
     except sqlite3.Error as e:
-        return f"An error occurred: {e}", 500
+        return jsonify({"error": str(e)}), 500
     finally:
         con.close()
 
 
 #ACUTALIZAR ID
-@app.route("/actualizar/<dat>", methods = ['PUT', 'POST'])
-def Actu(dat):
-    datos==request.get_json()
-    Actualizar=datos['ambiente']
-    sql="update AMBIENTE2 set IDCUENTADANTE="+dat+" where AMBIENTE="+Actualizar
-    print(sql)
-    con=sqlite3.connect("novedades.db")
-    cursor=con.cursor()
-    cursor.execute(sql)
-    con.commit()
-    con.close()
-    return(sql)
+@app.route("/actualizar", methods=['PUT', 'POST'])
+def Actu():
+    datos = request.get_json()
+    
+    if not datos or 'user_id' not in datos or 'ambiente_id' not in datos:
+        return jsonify({"error": "Invalid input"}), 400
 
+    user_id = datos['user_id']
+    ambiente_id = datos['ambiente_id']
+    
+    sql = "UPDATE AMBIENTE SET IDCUENTADANTE = ? WHERE idAMBIENTE = ?"
+    print(f"Executing SQL: {sql} with data: {user_id}, {ambiente_id}")
+
+    con = sqlite3.connect("novedades.db")
+    cursor = con.cursor()
+    
+    try:
+        cursor.execute(sql, (user_id, ambiente_id))
+        con.commit()
+        return jsonify({"message": "Assignment successful"}), 200
+    except sqlite3.Error as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        con.close()
+
+
+
+@app.route("/pp", methods = ['POST'])
+def jjj():
+    sql = ""
 
 #ASIGNAR AMBIENTE
 @app.route("/asigamb", methods = ['UPDATE'])
@@ -210,23 +317,25 @@ def AsigAmb():
 @app.route("/i/e" ,methods = ['POST'])
 def InsertEqui(): 
         datos=request.get_json()
-        ambie=datos['ambiente']
-        tip=datos['nombre']
+        ambiente=datos['ambiente']
+        nombre=datos['nombre']  
         estado=datos['estado']
-        seri=datos['serial']
-        estacion=datos['estaciones']
+        serial=datos['serial']
+        estacion=datos['estacion']
         # a = f"insert into EQUIPAMIENTO values(null, {ambie},{tip},{estado},{seri}, {estacion})"
         # sql= a
         # 
         con=sqlite3.connect("novedades.db")  
         cursor=con.cursor()
         
-        sql=f"insert into EQUIPAMIENTO(idambiente,nombre, estado,serial,estacion) values( {ambie},{tip},{estado},'{seri}', {estacion})"
+        sql=f"insert into EQUIPAMIENTO (idAMBIENTE,nombre,estado,serial,estacion) values( {ambiente},{nombre},{estado},'{serial}', {estacion})"
         print(sql)
         cursor.execute(sql)
         con.commit()
         con.close()
         return(sql)
+
+
 @app.route("/n/i",methods = ['POST'])
 def CrearNoved(): 
     

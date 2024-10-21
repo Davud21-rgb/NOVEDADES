@@ -1,19 +1,17 @@
 {% extends "base.html" %}
 
-{% include "/banner.html" %}
-
 {%block head%}
 {{super()}}
-<link rel="stylesheet" href="../static/css/Styleregistro.css">
 {%endblock%}
 
 {% block content %}
   <div class="login-page">
+    <h3>CUENTADANTE DEL AMBIENTE VIRTUAL</h3>
     <div class="form">
-      <h2>Registro</h2>
+      <h2>Datos personales</h2>
       <form method="POST">
         <div class="mb-3">
-          <label for="nombre" class="form-label">Nombre</label>
+          <label for="nombr" class="form-label">Nombre y apellidos</label>
           <input type="text" class="form-control" id="nombre" aria-describedby="nombre" name="nombre">
           <div id="nombre" class="form-text"></div>
         </div>
@@ -31,7 +29,16 @@
             <label for="exampleInputPassword1" class="form-label">Contraseña</label>
             <input type="password" class="form-control" id="exampleInputPassword1" name="password">
           </div>
-          <button id="btnAddNewUser" type="submit" class="btnRegistrar">Registrar</button>
+          <div class="mb-3">
+            <label for="ambiente" class="form-label">Ambiente</label>
+            <select class="form-select" name="ambiente" id="idAMBIEBTE" required>
+              <option selected disabled>Asigne un ambiente</option>
+              {% for ambiente in a %}
+                <option value="{{ ambiente.idAMBIENTE }}">{{ ambiente.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button id="btnAddNewUser" type="submit" class="btn btn-success">Registrar</button>
       </form>
       {% include 'mensajes.html' %}
     </div>

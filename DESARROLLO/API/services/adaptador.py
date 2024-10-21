@@ -1,102 +1,101 @@
 import sqlite3
 import json
-
 import requests
 
-configura={
-    "STATIC_FOLDERS":"static",
-    "TEMPLATE_FOLDER":"templates",
-    "DEBUG":True,
-    "SERVER_NAME":"http://127.0.0.1",
-    "SERVER_API":"http://127.0.0.1:5000",
-    "PUERTOREST":5000,
-    "PUERTOAPP":8000,
-    "MODULO":"salud",
-    "SMBD":"SQLITE",
-    "DB":"./novedades.db"
+configura = {
+    "STATIC_FOLDERS": "static",
+    "TEMPLATE_FOLDER": "templates",
+    "DEBUG": True,
+    "SERVER_NAME": "http://127.0.0.1",
+    "SERVER_API": "http://127.0.0.1:5000",
+    "PUERTOREST": 5000,
+    "PUERTOAPP": 8000,
+    "MODULO": "salud",
+    "SMBD": "SQLITE",
+    "DB": "./novedades.db"
 }
+
 class Usuario:
     
-    res=None
-    data=None
-    def __init__(self,bd):
-        self.bd=bd
+    def __init__(self, bd):
+        self.bd = bd
         
-        
-    def ConsultarJson(self,sql):
-            con = sqlite3.connect(self.bd)
-            todo=[]
+    def ConsultarJson(self, sql, params=None):
+        con = sqlite3.connect(self.bd)
+        todo = []
+        try:
             cur = con.cursor()
-            res=cur.execute(sql)
+            if params:  # If parameters are provided, execute with them
+                res = cur.execute(sql, params)
+            else:
+                res = cur.execute(sql)
+
+            if cur.description is None:
+                return []  # Return an empty list if there are no results
+
+            # Get column names from the description
             nombres_columnas = [descripcion[0] for descripcion in cur.description]
-            print(nombres_columnas)
             primer_resultado = res.fetchall()
-        
-            for i,valor in enumerate(primer_resultado):
-                aux1=valor
-                aux2= nombres_columnas
-                aux3=dict(zip(aux2,aux1))   
+
+            # Process each row and map it to the column names
+            for valor in primer_resultado:
+                aux3 = dict(zip(nombres_columnas, valor))   
                 todo.append(aux3)
+        finally:
             con.close() 
-            return list(todo)
-    
+        return todo
+
+
     def consultarUno(self, sql):
         con = sqlite3.connect(self.bd)
-        cur = con.cursor()
-        res=cur.execute(sql)
-        primer_resultado = res.fetchone()
-        return json.dumps(primer_resultado)
-    def Inserte(self,data):
-        response = requests.post(self.url+"/i", json=data)
-    def Borra(self,cual,clave):
-        response = requests.delete(self.url+clave+str(cual))
-    def Actualiza(self,data,clave="/u"):
-        response = requests.put(self.url+clave, json=data)
+        try:
+            cur = con.cursor()
+            res = cur.execute(sql)
+            primer_resultado = res.fetchone()
+            return json.dumps(primer_resultado) if primer_resultado else None
+        finally:
+            con.close()
+
+    def Inserte(self, data):
+        response = requests.post(self.url + "/i", json=data)
+        return response.json() if response.status_code == 200 else None
+
+    def Borra(self, cual, clave):
+        try:
+            response = requests.delete(self.url + clave + str(cual))
+            return response.json() if response.status_code == 200 else None
+        except Exception as e:
+            print(f"Error deleting: {e}")
+            return None
+
+    def Actualiza(self, data, clave="/u"):
+        response = requests.put(self.url + clave, json=data)
+        return response.json() if response.status_code == 200 else None
 
     def InserteAPI(self, sql):
-        print(sql)
         con = sqlite3.connect(self.bd)
-        cur = con.cursor()
-        cur.execute(sql)
-        con.commit()
-        resultado = "Registro insertado"
-        return resultado
-        con.close()
-############################################################
+        try:
+            cur = con.cursor()
+            cur.execute(sql)
+            con.commit()
+            return "Registro insertado"
+        finally:
+            con.close()  # Ensure the connection is closed
 
-
-# def ListarTodos(clave="/to"):
-#     res=requests.get(url+clave)
-#     data1=json.loads(res.content)
-#     return data1
-# def ListarUno_a(cual):    
-#     res=requests.get(url+"/ppa/"+str(cual))
-#     data1=json.loads(res.content)
-#     if data1!=[]:
-#         return(data1)
-#     else:
-#         return False  
 def ListarJson(clave):    
-    res=requests.get(url+clave)
-    data1=json.loads(res.content)
-    if data1!=[]:
-        return(data1)
-    else:
-        return False  
-def InserteAPI(self, sql):
-    print(sql)
-    con = sqlite3.connect(self.bd)
-    cur = con.cursor()
-    cur.execute(sql)
-    con.commit()
-    resultado = "Registro insertado"
-    return resultado
-    con.close()
-def BorraAPI(cual,clave):
-    try:
-        response = requests.delete(url+clave+str(cual))
-    except Exception as e:
-        ValueError('Ocurrio un erro'+e)
+    res = requests.get(url + clave)
+    if res.status_code == 200:
+        return res.json()  # Use .json() to automatically decode
+    return False
 
-def ActualizaAPI(data,clave):
-    response = requests.put(url+clave, json=data)
+def BorraAPI(cual, clave):
+    try:
+        response = requests.delete(url + clave + str(cual))
+        return response.json() if response.status_code == 200 else None
+    except Exception as e:
+        print(f'Error occurred: {e}')
+        return None
+
+def ActualizaAPI(data, clave):
+    response = requests.put(url + clave, json=data)
+    return response.json() if response.status_code == 200 else None

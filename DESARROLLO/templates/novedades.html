@@ -1,29 +1,27 @@
 {% extends "base.html" %}
-{% block content %}<center>
-    <h2 class="caret-sombra-red">{{msg}}</h2>
-    <table class="table table-striped table-bordered tabla1" style="width:90%;" BORDER=1>
-    <th><b>ESTACION</b></th>
-    <th><b>FECHA</b></th>
-    <th><b>DESCRIPCION</b></th>
-    <th><b></b></th></tr>
-    {% if hay == 1  %}
-    {% for datos in cadena %}
-    
-    <td>{{datos.AMBIENTE}}-1</td>
-    <td>{{datos.FECHA}}</td>
-    <td>{{datos.DESCRIPCION}}</td>
-    <td><a href="/res/{{datos.idNOVEDADES}}">
-        <i class='far fa-stop-circle' style='font-size:24px'></i> </a>
-        <i class='fas fa-database' style='font-size:24px'></i></td>
-    </td>
-    
- </tr>
- {%endfor%}
- {%endif%}
- 
-</table>
-</div>
+{% block content %}
+<center>
+    <h2 class="caret-sombra-red">{{ msg }}</h2>
+    <table class="table table-striped table-bordered tabla1" style="width:90%;" border="1">
+        <tr>
+            <th><b>ESTACION</b></th>
+            <th><b>FECHA</b></th>
+            <th><b>DESCRIPCION</b></th>
+            <th><b>ACCIONES</b></th>
+        </tr>
+        {% for datos in a %}
+        <tr>
+            <td>{{ datos.estacion }}</td>
+            <td>{{ datos.fecha }}</td>
+            <td>{{ datos.descripcion }}</td>
+            <td>
+                <a href="/res/{{ datos.idNOVEDADES }}">
+                    <i class='far fa-stop-circle' style='font-size:24px'></i>
+                </a>
+                <i class='fas fa-database' style='font-size:24px'></i>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</center>
 {% endblock content %}
-
-
-
