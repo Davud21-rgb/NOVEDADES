@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="w3-margin tabla1">
+  <center><h3 class="caret-sombra-red">
+    NOVEDADES EN EL AMBIENTE DE FORMACION -CUENTADANTE- 
+    <br>AMBIENTE ASIGNADO: 
+    {% for name in classroom_names %}
+        {{ name }}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+</h3></center>
+
   <h3>
     <ul id="myUL">
       <li><span class="caret">📁 <a href="/centro" target="centro">MENÚ PRINCIPAL</a></span>

@@ -12,17 +12,24 @@ def create_app():
 app = create_app() # CREATE THE FLASK APP
 app.bd="novedades.db"
 
-@app.route("/apilogin/<data>")
-def datos(data):
-    sql=f"select * from USUARIO where email='{data}'"
+@app.route("/apilogin")
+def datos():
+    sql=f"SELECT * FROM USUARIO"
     u1=Usuario(app.bd)
-    todo=u1.consultarUno(sql)
+    todo=u1.ConsultarJson(sql)
     return(todo)
 
 
 @app.route("/ambi")
 def ambi():
     sql = "SELECT * FROM AMBIENTE WHERE IDCUENTADANTE IS NULL"
+    u1=Usuario(app.bd)
+    todo=u1.ConsultarJson(sql)
+    return(todo)
+
+@app.route("/ambippp/<id>")
+def ambisss(id):
+    sql = f"SELECT * FROM AMBIENTE WHERE IDCUENTADANTE = {id}"
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
     return(todo)

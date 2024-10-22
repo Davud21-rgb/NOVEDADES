@@ -190,36 +190,38 @@ def register():
     return render_template("register.html", a=a)
 
 
-#vista logeo // esta vista quedo siendo la principal
-@app.route("/SSS", methods=['POST','GET'])
+@app.route("/", methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         mail = request.form.get("email")
         passwords = request.form.get("password")
 
-        # Check for empty form fields
         if not mail or not passwords:
-            error = "Please enter both email and password."
-            flash(error)
+            flash("Please enter both email and password.")
             return redirect(url_for("login"))
 
         u1 = Usuario()
-        cadena = u1.Consultlogin(mail)
+        cadena = u1.ListarJson("/apilogin")
 
-        if not cadena:  # If no user is found
-            error = "No such user found."
-            flash(error)
-        else:
-            # Successful login: store user details in session
-            session['idUSUARIO'] = cadena[0]
-            session['name'] = cadena[1]
-            session['rol'] = cadena[3]
 
-            flash("Welcome!")
-            # Redirect to /menu after successful login
-            return redirect(url_for("home"))
+        for u in cadena:
+            if mail == u['email'] and passwords == u['password']:
+                session['user_id'] = u['idUSUARIO']  # Store the user's ID (CUENTADANTE)
+                session['user_name'] = u['nombre']   # Optionally store the user's name
+                
+                flash(f"Welcome {u['nombre']}!")
+                return redirect(url_for("home"))
+
+        if not cadena:
+            flash("Error retrieving user data.")
+            return redirect(url_for("login"))
+
+        flash("The email or password is incorrect")
+        return redirect(url_for("login"))
 
     return render_template("login.html")
+
+
 
 
 #Asignacion de ambientes
@@ -285,14 +287,18 @@ def nuevo_elemento():
     return render_template("nuevo_elemento.html",am=am)
         
 
-@app.route("/")
+@app.route("/home")
 def home():
     return render_template("index.html")
+
 @app.route("/menu")
 def menu():
-    ambi = requests.get("http://127.0.0.1:8000/ambi").json()
-    classroom_names = [a['NOMBRE'] for a in ambi if 'NOMBRE' in a]
-    return render_template("menu.html",classroom_names=classroom_names)
+    current_user_id = session.get('user_id')
+    if current_user_id:
+        lulo = requests.get(f"http://127.0.0.1:8000/ambippp/{current_user_id}").json()
+        classroom_names = [a['nombre'] for a in lulo]
+        return render_template("menu.html", classroom_names=classroom_names)
+
 @app.route("/banner")
 def banner():
     return render_template("banner.html")
