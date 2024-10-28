@@ -7,6 +7,8 @@ from email.mime.multipart import MIMEMultipart
 from flask_sqlalchemy import SQLAlchemy
 from email.mime.text import MIMEText
 import time
+
+import pandas as pd
 import os
 
 
@@ -79,6 +81,11 @@ class Usuario:
     
     def ambientesss(self, clave="/ambis"):
         self.res = requests.get(self.url + clave)
+        data1 = json.loads(self.res.content)
+        return data1
+    
+    def elem(self,clave="/tipoElementos"):
+        self.res = requests.get(self.url+clave)
         data1 = json.loads(self.res.content)
         return data1
     
@@ -206,8 +213,8 @@ def login():
 
         for u in cadena:
             if mail == u['email'] and passwords == u['password']:
-                session['user_id'] = u['idUSUARIO']  # Store the user's ID (CUENTADANTE)
-                session['user_name'] = u['nombre']   # Optionally store the user's name
+                session['user_id'] = u['idUSUARIO']
+                session['user_name'] = u['nombre']
                 
                 flash(f"Welcome {u['nombre']}!")
                 return redirect(url_for("home"))
@@ -248,43 +255,13 @@ def dirigir():
     else:
         return redirect(url_for("inicio"))
     
-
-# Para crear nuevo elemento
-@app.route("/nuevo_elementoi", methods=['GET', 'POST'])
-def nuevo_elementoi():
-    u1 = Usuario()
-    datos = u1.ConNovel('0')
-    if request.method == 'POST':
-        ambiente = request.form["ambiente"]
-        estacion = request.form["estacion"]
-        serial = request.form["serial"]
-        nombre = request.form["nombre"]
-        tipo = nombre.upper()
-        estado = request.form["estado"]
-
-        if not ambiente or not serial or not tipo or not estado:
-            print("Faltan datos")
-            mensaje="Faltan datos"
-            flash(mensaje)
-
-        user_data = {
-            "ambiente": ambiente,
-            "estaciones": estacion,
-            "serial": serial,
-            "nombre": nombre,
-            "estado": estado
-        }
-
-        u1.InserteElementos(user_data)
-        mensaje = "Elemento registrado correctamente"
-        flash(mensaje)
-    return redirect("/ele")
         
 @app.route("/nuevo_elemento", methods=['GET', 'POST'])
 def nuevo_elemento():
     u1=Usuario()
     am = u1.ambientesss()
-    return render_template("nuevo_elemento.html",am=am)
+    e =u1.elem()
+    return render_template("nuevo_elemento.html",am=am,e=e)
         
 
 @app.route("/home")
@@ -373,6 +350,11 @@ def equipamiento2():
     elementos=requests.get("http://127.0.0.1:8000/allElements").json()
     msg=" ELEMENTOS DEL AMBIENTE DE FORMACION EN CUENTADANCIA"
     return render_template("equipamiento.html",msg=msg,elementos=elementos)
+
+
+@app.route("/carga_masiva", methods=['GET', 'POST'])
+def carga_masiva():
+    return render_template("carga_masiva.html")
 
 
 @app.route("/res/<nov>")

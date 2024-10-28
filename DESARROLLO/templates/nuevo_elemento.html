@@ -10,7 +10,7 @@
   <div class="login-page">
     <div class="form">
       <h2>NUEVO ELEMENTO AMBIENTE DE FORMACION EN CUENTADANCIA</h2>
-      <form method="POST" action="/nuevo_elementoi">
+      <form method="POST">
           <div class="mb-3">
             <label for="ambiente" class="form-label">Ambiente</label>
             <select class="form-control" id="ambiente" name="ambiente">
@@ -19,71 +19,44 @@
               {% endfor %}
               </select> 
           </div>
-          <div>
-            <label for="estacion" class="form-label">ESTACION</label>
-            <input type=text class="form-control" id="estacion" name="estacion">
-              </select> 
-          </div>
           <div class="mb-3">
             <label for="serial" class="form-label">Serial</label>
             <input type="text" name="serial" class="form-control" id="serial">
           </div>
           <div class="mb-3">
-            <label for="tipo" class="form-label">Tipo de Elemento</label>
+            <label for="estacion" class="form-label">Estación</label>
+            <input type="text" name="estacion" class="form-control" id="estacion">
+          </div>
+          <div class="mb-3">
+            <label for="idTIPOELEMENTO" class="form-label">Tipo de Elemento</label>
+            <select class="form-control" id="idTIPOELEMENTO" name="idTIPOELEMENTO">
+              {% for data1 in e %}
+              <option value="{{ data1.idTIPOELEMENTO }}">{{ data1.idTIPOELEMENTO }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="nombre" class="form-label">Elemento</label>
             <select class="form-control" id="nombre" name="nombre">
-              <option value=1>Monitor</option>
-              <option value=2>Mouse</option>
-              <option value=3>Teclado</option>
-              <option value=4>Otro</option>
+              {% for data1 in e %}
+              <option value="{{ data1.NOMTIPO }}">{{ data1.NOMTIPO }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="mb-3">
             <label for="estado" class="form-label">Estado</label>
             <select class="form-control" id="estado" name="estado">
-              <option value=1>Bueno</option>
-              <option value=2>Degectuoso</option>
-              <option value=3>Reportado</option>
-              <option value=4>En reparación</option>
+              <option value=1>BUENO</option>
+              <option value=2>DEFECTUOSO</option>
+              <option value=3>REPORTADO</option>
+              <option value=4>EN REPARACION</option>
             </select>
           </div>
-          <button type="submit" class="btn btn-outline-success">GUARDAR</button>
+          <button id="newElement" class="btn btn-outline-success">GUARDAR</button>
       </form>
       {% include 'mensajes.html' %}
     </div>
   </div>
-  <script>
-    function selecc(id){
-      console.log(id);
-      let url = "http://127.0.0.1:8000/busca/ESTACIONES/"+id
-      fetch(url)
-      .then(r => r.json())
-      .then(data => {
-          //console.log(data);
-          // crear en el DOM apartir del id programa
-          const createProgram = document.getElementById('estaciones');
-          createProgram.innerHTML  = "";    
-
-
-          // Crea una opción por defecto
-          const option = document.createElement("option");
-          option.value = "0";
-          option.text = "Seleccione";
-          createProgram.appendChild(option);
-
-          // iterar sobre mi data para agregar los option
-          data.forEach((item) => {
-              const createOption = document.createElement('option');
-                  createOption.value = item.id_Estacion;
-                  createOption.text = item.estacion;
-                  createProgram.appendChild(createOption);
-              
-            // recibo la informacion debe guardarla e imprimirla en el select con id programa
-          })
-          
-      })
-      .catch(error => console.log(error))
-    }
-  </script>
+  <script src="{{url_for('static', filename='js/newElement.js')}}"></script>
 </body>
-</html>
 {% endblock %}

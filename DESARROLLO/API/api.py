@@ -1,4 +1,5 @@
 from flask import Flask, jsonify,render_template,request,redirect
+import pandas as pd
 import requests
 from flask_cors import CORS
 import sqlite3
@@ -198,6 +199,13 @@ def allEle():
     todo=u1.ConsultarJson(sql)
     return(todo)
 
+@app.route("/tipoElementos")
+def tipoEle():
+    sql = "SELECT * FROM TIPOELEMENTO"
+    ele = Usuario(app.bd)
+    todo = ele.ConsultarJson(sql)
+    return (todo)
+
 @app.route("/elem/<amb>/<e>/<n>")
 def elemento(amb,e,n):    
     if amb !="0":
@@ -321,26 +329,53 @@ def AsigAmb():
     return(sql)
 
 #INSERTAR EQUIPAMIENTO
-@app.route("/i/e" ,methods = ['POST'])
+@app.route("/i/e", methods=['POST'])
 def InsertEqui(): 
-        datos=request.get_json()
-        ambiente=datos['ambiente']
-        nombre=datos['nombre']  
-        estado=datos['estado']
-        serial=datos['serial']
-        estacion=datos['estacion']
-        # a = f"insert into EQUIPAMIENTO values(null, {ambie},{tip},{estado},{seri}, {estacion})"
-        # sql= a
-        # 
-        con=sqlite3.connect("novedades.db")  
-        cursor=con.cursor()
-        
-        sql=f"insert into EQUIPAMIENTO (idAMBIENTE,nombre,estado,serial,estacion) values( {ambiente},{nombre},{estado},'{serial}', {estacion})"
-        print(sql)
-        cursor.execute(sql)
-        con.commit()
-        con.close()
-        return(sql)
+    ambiente = request.form['ambiente']
+    serial = request.form['serial']
+    idTIPOELEMENTO = request.form['idTIPOELEMENTO']
+    nombre = request.form['nombre']
+    estado = request.form['estado']
+    estacion = request.form['estacion']
+
+    con = sqlite3.connect("novedades.db")  
+    cursor = con.cursor()
+
+    # Use parameterized queries
+    sql = "INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, NOMBRE, ESTADO, SERIAL, ESTACION) VALUES (?, ?, ?, ?, ?, ?)"
+    cursor.execute(sql, (ambiente, idTIPOELEMENTO, nombre, estado, serial, estacion))
+
+    con.commit()
+    con.close()
+    return "Insert successful"
+
+
+@app.route("/massive/load", methods=["POST"])
+def massive_load():
+    file = request.files.get('myfile')
+    if file and (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+        df = pd.read_excel(file)
+        conn = sqlite3.connect("novedades.db")  
+        cursor = conn.cursor()
+
+        for _, row in df.iterrows():
+                    cursor.execute('''
+                        INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, NOMBRE, ESTADO, SERIAL, ESTACION, OBSERVACION)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        row['idAMBIENTE'],
+                        row['idTIPOELEMENTO'],
+                        row['NOMBRE'],
+                        row['ESTADO'],
+                        row['SERIAL'],
+                        row['ESTACION'],
+                        row['OBSERVACION']
+                    ))
+
+        conn.commit()
+        conn.close()
+        return "Insert successful"
+
 
 
 @app.route("/n/i",methods = ['POST'])

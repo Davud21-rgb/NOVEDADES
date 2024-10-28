@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <div class="form">
+        <h2>CARGA MASIVA DE EQUIPAMIENTO DEL AMBIENTE VIRTUAL</h2>
+        <form method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="myfile" class="form-label">Subir archivo:</label>
+                <input class="form-control" type="file" id="myfile" name="myfile" />
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex gap-2">
+                    <button id="carga_masiva" class="btn btn-outline-success">Subir carga masiva</button>
+                    <button id="cancelElement" class="btn btn-outline-danger">Cancelar</button>
+                </div>
+                <div class="form-text mt-2">Solo se permiten archivos xls, xlsx</div>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="{{url_for('static', filename='js/carga_masiva.js')}}"></script>
+{% endblock %}
