@@ -10,4 +10,18 @@ newElement.addEventListener("click", (event) => {
         method: "POST",
         body: formData,
     })
-})
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Network response was not ok " + response.statusText);
+        }
+        return response.text(); // Or `response.json()` if the server sends JSON
+    })
+    .then(data => {
+        alert("Insert successful"); // Show a success message
+        console.log(data); // Log server response for debugging
+    })
+    .catch(error => {
+        console.error("There was an error with the submission:", error);
+        alert("There was an error with the submission. Please try again.");
+    });
+});

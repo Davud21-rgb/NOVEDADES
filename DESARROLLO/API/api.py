@@ -1,9 +1,12 @@
+import datetime
 from flask import Flask, jsonify,render_template,request,redirect
 import pandas as pd
 import requests
 from flask_cors import CORS
 import sqlite3
 import json
+
+from sqlalchemy import null
 from  services.adaptador import *
 def create_app():
     app=Flask(__name__)
@@ -49,9 +52,9 @@ def classrooms():
     todo=u1.ConsultarJson(sql)
     return(todo)
 
-@app.route("/novedadesA")
-def listar():
-    sql = """
+@app.route("/novedadesA/<idUSER>")
+def listar(idUSER):
+    sql = f"""
     SELECT DISTINCT
         n.idNOVEDADES,
         e.ESTACION AS estacion,
@@ -60,7 +63,8 @@ def listar():
     FROM NOVEDADES n
     JOIN AMBIENTE a ON n.idAMBIENTE = a.idAMBIENTE
     JOIN EQUIPAMIENTO e ON a.idAMBIENTE = e.idAMBIENTE
-    WHERE n.ESTADO = 0;
+    WHERE n.ESTADO = 0
+    AND a.idCUENTADANTE = {idUSER};
     """
     
     print(f"Executing SQL: {sql}")  # Debug output
@@ -74,9 +78,9 @@ def listar():
     return jsonify(todo)  # Return JSON response
 
 
-@app.route("/novedadesP")
-def listar2():
-    sql = """
+@app.route("/novedadesP/<idUSER>")
+def listar2(idUSER):
+    sql = f"""
     SELECT DISTINCT
         n.idNOVEDADES,
         e.ESTACION AS estacion,
@@ -86,7 +90,8 @@ def listar2():
     FROM NOVEDADES n
     JOIN AMBIENTE a ON n.idAMBIENTE = a.idAMBIENTE
     JOIN EQUIPAMIENTO e ON a.idAMBIENTE = e.idAMBIENTE
-    WHERE n.ESTADO = 1;
+    WHERE n.ESTADO = 1
+    AND a.idCUENTADANTE = {idUSER};
     """
     
     print(f"Executing SQL: {sql}")  # Debug output
@@ -101,9 +106,9 @@ def listar2():
 
 
 
-@app.route("/novedadesC")
-def listar3():
-    sql = """
+@app.route("/novedadesC/<idUSER>")
+def listar3(idUSER):
+    sql = f"""
     SELECT DISTINCT
         n.idNOVEDADES,
         e.ESTACION AS estacion,
@@ -114,7 +119,8 @@ def listar3():
     JOIN AMBIENTE a ON n.idAMBIENTE = a.idAMBIENTE
     JOIN EQUIPAMIENTO e ON a.idAMBIENTE = e.idAMBIENTE
     JOIN VAMBIENTE v ON n.idNOVEDADES = v.idNOVEDADES
-    WHERE v.ESTADO = 'CERRADA';
+    WHERE v.ESTADO = 'CERRADA'
+    AND a.idCUENTADANTE = {idUSER};
     """
     
     print(f"Executing SQL: {sql}")  # Debug output
@@ -192,12 +198,29 @@ def equipamiento(amb):
     return(todo)
 
 
-@app.route("/allElements")
-def allEle():
-    sql = "select * from VEQUIPAMIENTO"
+@app.route("/allElements/<idUSER>")
+def allEle(idUSER):
+    sql = f"""
+    SELECT DISTINCT
+        equi.idAMBIENTE,
+        equi.TIPO AS tipo,
+        equi.SERIAL AS serial,
+        equi.ESTACION AS estacion,
+        equi.ESTADO AS estado
+    FROM VEQUIPAMIENTO equi
+    JOIN AMBIENTE a ON equi.idAMBIENTE = a.idAMBIENTE
+    WHERE a.idCUENTADANTE = {idUSER};
+    """
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
     return(todo)
+
+@app.route("/allEle")
+def allElle():
+    sql = "SELECT * FROM VEQUIPAMIENTO"
+    ele = Usuario(app.bd)
+    todo = ele.ConsultarJson(sql)
+    return (todo)  
 
 @app.route("/tipoElementos")
 def tipoEle():
@@ -330,24 +353,34 @@ def AsigAmb():
 
 #INSERTAR EQUIPAMIENTO
 @app.route("/i/e", methods=['POST'])
-def InsertEqui(): 
+def InsertEqui():
     ambiente = request.form['ambiente']
-    serial = request.form['serial']
     idTIPOELEMENTO = request.form['idTIPOELEMENTO']
     nombre = request.form['nombre']
     estado = request.form['estado']
+    serial = request.form['serial']
     estacion = request.form['estacion']
+    observacion = None  # Use None for NULL value
 
-    con = sqlite3.connect("novedades.db")  
+    con = sqlite3.connect("novedades.db", timeout=5)  # Add timeout to wait for unlock
     cursor = con.cursor()
 
-    # Use parameterized queries
-    sql = "INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, NOMBRE, ESTADO, SERIAL, ESTACION) VALUES (?, ?, ?, ?, ?, ?)"
-    cursor.execute(sql, (ambiente, idTIPOELEMENTO, nombre, estado, serial, estacion))
+    try:
+        sql = """
+        INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, NOMBRE, ESTADO, SERIAL, ESTACION, OBSERVACION)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """
+        cursor.execute(sql, (ambiente, idTIPOELEMENTO, nombre, estado, serial, estacion, observacion))
+        con.commit()
+        print("Insert successful")
+    except sqlite3.OperationalError as e:
+        print("Database error:", e)
+        return "Database error", 500
+    finally:
+        con.close()  # Ensure connection is closed
 
-    con.commit()
-    con.close()
     return "Insert successful"
+
 
 
 @app.route("/massive/load", methods=["POST"])
@@ -359,10 +392,10 @@ def massive_load():
         cursor = conn.cursor()
 
         for _, row in df.iterrows():
-                    cursor.execute('''
+                    cursor.execute("""
                         INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, NOMBRE, ESTADO, SERIAL, ESTACION, OBSERVACION)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
-                    ''', (
+                    """, (
                         row['idAMBIENTE'],
                         row['idTIPOELEMENTO'],
                         row['NOMBRE'],
@@ -380,7 +413,6 @@ def massive_load():
 
 @app.route("/n/i",methods = ['POST'])
 def CrearNoved(): 
-    
     datos=request.get_json()
     idA=datos['idAMBIENTE']
     idN=datos['idNOVEDADES']
@@ -389,7 +421,8 @@ def CrearNoved():
     estado=datos['ESTADO']
     padre=datos['PADRE']
     match = descri1.rfind   ("[PROCESO]")
-    sql1="insert into NOVEDADES(idAMBIENTE, DESCRIPCION, ESTADO,PADRE) values("+str(idA)+",'"+descri+"',1,"+str(idN)+")"
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    sql1="insert into NOVEDADES(idAMBIENTE, FECHA ,DESCRIPCION, ESTADO,PADRE) values("+str(idA)+",'"+current_date+"','"+descri+"',1,"+str(idN)+")"
     con=sqlite3.connect("novedades.db")  
     cursor=con.cursor()
 
@@ -405,16 +438,18 @@ def CrearNoved():
     con.close()
     print(sql1)
     return(sql2)
+
+
 @app.route("/n/d",methods = ['POST'])
 def CerrarNoved(): 
-    
     datos=request.get_json()
     idA=datos['idAMBIENTE']
     idN=datos['idNOVEDADES']
     descri=datos['DESCRPCION'].upper()
     estado=datos['ESTADO']
     padre=datos['PADRE']
-    sql1="insert into NOVEDADES(idAMBIENTE, DESCRIPCION, ESTADO,PADRE) values("+str(idA)+",'"+descri+"',2,"+str(idN)+")"
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    sql1="insert into NOVEDADES(idAMBIENTE, FECHA, DESCRIPCION, ESTADO,PADRE) values("+str(idA)+",'"+current_date+"','"+descri+"',2,"+str(idN)+")"
     con=sqlite3.connect("novedades.db")  
     cursor=con.cursor()
     sql2="update NOVEDADES set ESTADO=2,DESCRIPCION=concat(DESCRIPCION,'[CERRADA]')  where PADRE="+str(idN)

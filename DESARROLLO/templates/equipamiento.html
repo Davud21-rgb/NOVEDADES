@@ -14,12 +14,12 @@
         </tr>
         {% for datos in elementos %}
         <tr>
-            <td>{{ datos.ESTACION }}</td>
-            <td>{{ datos.SERIAL }}</td>
-            <td>{{ datos.TIPO }}</td>
-            <td>{{ datos.ESTADO }}</td>
+            <td>{{ datos.estacion }}</td>
+            <td>{{ datos.serial }}</td>
+            <td>{{ datos.tipo }}</td>
+            <td>{{ datos.estado }}</td>
             <td>
-                <a href="/res/{{ datos.idEQUIPAMIENTO }}">
+                <a href="/res/{{ datos.idAMBIENTE }}">
                     <i class='far fa-stop-circle' style='font-size:24px'></i>
                 </a>
                 <i class='fas fa-database' style='font-size:24px'></i>

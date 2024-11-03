@@ -80,14 +80,19 @@ class Usuario:
         return data1
     
     def ambientesss(self, clave="/ambis"):
-        self.res = requests.get(self.url + clave)
+        self.res = requests.get(self.url + clave, timeout=5)
         data1 = json.loads(self.res.content)
         return data1
     
     def elem(self,clave="/tipoElementos"):
-        self.res = requests.get(self.url+clave)
+        self.res = requests.get(self.url+clave, timeout=5)
         data1 = json.loads(self.res.content)
         return data1
+    
+    def allEle(self,clave="/allEle"):
+        self.res = requests.get(self.url+clave)
+        data = json.loads(self.res.content)
+        return data
     
     def ConsultAmbi(self, dat, e, n, clave="/elem/"):
         extend= f"{dat}/{e}/{n}"
@@ -282,9 +287,7 @@ def banner():
 @app.route("/centro")
 def centro():
     return render_template("centro.html")
-@app.route('/estudiante')
-def estudiante():
-    return render_template("estudiante.html")
+
 def homeInstru():
     return render_template("centro.html")
 
@@ -298,20 +301,23 @@ def footer():
 
 @app.route("/novedada", methods=["GET", "POST"])
 def ada():
-    a=requests.get("http://127.0.0.1:8000/novedadesA").json()
+    idUSER = session.get('user_id')
+    a=requests.get(f"http://127.0.0.1:8000/novedadesA/{idUSER}").json()
     msg = "NOVEDADES ABIERTAS"
     return render_template("novedades.html", msg=msg,a=a)
 
 
 @app.route("/novedadp")
 def novedadp():
-    cadena=requests.get("http://127.0.0.1:8000/novedadesP").json()
+    idUSER = session.get('user_id')
+    cadena=requests.get(F"http://127.0.0.1:8000/novedadesP/{idUSER}").json()
     msg="NOVEDADES EN PROCESO"
     return render_template("PROCESO.html",msg=msg,cadena=cadena)
 
 @app.route("/novedadc")
 def novedadc():
-    cadena=requests.get("http://127.0.0.1:8000/novedadesC").json()
+    idUSER = session.get('user_id')
+    cadena=requests.get(f"http://127.0.0.1:8000/novedadesC/{idUSER}").json()
     msg="NOVEDADES EN CERRADAS"
     return render_template("CERRADAS.html",msg=msg,cadena=cadena)
 
@@ -333,21 +339,12 @@ def resumen2():
     msg="RESUMEN EQUIPAMIENTO DEL AMBIENTE"
     return render_template("resumen.html",cadena=cadena,hay=1,msg=msg)
 
-# @app.route("/r/a/<amb>")
-# def equipamiento(amb):
-#     u1=Usuario()
-#     cadena=u1.ListarJson("/e/a/1")
-#     llenos=1
-#     msg=" EQUIPAMIENTO DEL AMBIENTE"
-    
-#     if cadena==False:
-#         return render_template("equipamiento.html",cadena=cadena,hay=0,msg=msg)
-#     return render_template("equipamiento.html",cadena=cadena,hay=1,msg=msg)
-
 
 @app.route("/ele")
 def equipamiento2():
-    elementos=requests.get("http://127.0.0.1:8000/allElements").json()
+    idUSER = session.get('user_id')
+    elementos=requests.get(f"http://127.0.0.1:8000/allElements/{idUSER}").json()
+    print (elementos)
     msg=" ELEMENTOS DEL AMBIENTE DE FORMACION EN CUENTADANCIA"
     return render_template("equipamiento.html",msg=msg,elementos=elementos)
 
@@ -363,11 +360,16 @@ def respuestanov(nov):
     cadena=u1.ListarJson("/n/"+nov)
     llenos=1
     msg=" RESPUESTA A NOVEDAD"
-    
-    # if cadena==False:
-    # return render_template("novprocesa.html",msg=msg)
-    # return render_template("novprocesa.html",msg=msg)
     return render_template("novprocesa.html",cadena=cadena,msg=msg)
+
+
+@app.route("/aprendiz", methods = ['GET'])
+def aprendiz():
+    e = Usuario()
+    elementos = e.allEle()
+    search_number = request.args.get('ESTACION', type=int)
+    filtered_data = [dato for dato in elementos if dato['ESTACION'] == search_number]
+    return render_template("estudiante.html", elementos=filtered_data)
 
 @app.route("/web/email", methods=["GET", "POST"])
 def email():
