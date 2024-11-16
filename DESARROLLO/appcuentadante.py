@@ -8,6 +8,9 @@ from flask_sqlalchemy import SQLAlchemy
 from email.mime.text import MIMEText
 import time
 
+from flask import Flask, render_template, redirect, url_for, flash, request
+from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin, current_user
+
 import pandas as pd
 import os
 
@@ -24,9 +27,35 @@ def create_app():
     )
 
     mail.init_app(app)
+       
     return app
 app = create_app() # CREATE THE FLASK APP
 app.ruta="http://127.0.0.1:8000"
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+class Login(UserMixin):
+    def __init__(self, data):
+        self.email = data['email']
+        self.idUSUARIO = data['idUSUARIO']
+        self.nombre = data['nombre']
+        self.password = data['password']
+        self.rol = data['rol']
+
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.idUSUARIO)
 
 class Usuario:
     
@@ -156,6 +185,8 @@ class Usuario:
         self.res = requests.get(self.url + clave)
         data = json.loads(self.res.content)
         return data
+    
+    
         
 @app.route("/register", methods=['POST', 'GET'])
 def register():
@@ -205,33 +236,32 @@ def register():
 @app.route("/", methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        mail = request.form.get("email")
+        email = request.form.get("email")
         passwords = request.form.get("password")
-
-        if not mail or not passwords:
-            flash("Please enter both email and password.")
-            return redirect(url_for("login"))
 
         u1 = Usuario()
         cadena = u1.ListarJson("/apilogin")
+        cuentadante_encontrado = False
 
+        for c in cadena:
+            if len(c) >= 5 and email == c['email'] and passwords == c['password']:
+                if c['rol'] == 2:
+                    user = Login(c)
+                    login_user(user)
+                    cuentadante_encontrado = True
+                    break
+                else:
+                    flash(f"El instructor con el email... {c['email']} NO es un cuentadante.")
+                    return redirect(url_for("login"))
 
-        for u in cadena:
-            if mail == u['email'] and passwords == u['password']:
-                session['user_id'] = u['idUSUARIO']
-                session['user_name'] = u['nombre']
-                
-                flash(f"Welcome {u['nombre']}!")
-                return redirect(url_for("home"))
-
-        if not cadena:
-            flash("Error retrieving user data.")
+        if cuentadante_encontrado:
+            return redirect(url_for('home'))
+        else:
+            flash("The email or password is incorrect")
             return redirect(url_for("login"))
 
-        flash("The email or password is incorrect")
-        return redirect(url_for("login"))
-
     return render_template("login.html")
+
 
 
 
@@ -270,6 +300,7 @@ def nuevo_elemento():
         
 
 @app.route("/home")
+@login_required
 def home():
     return render_template("index.html")
 
@@ -280,6 +311,11 @@ def menu():
         lulo = requests.get(f"http://127.0.0.1:8000/ambippp/{current_user_id}").json()
         classroom_names = [a['nombre'] for a in lulo]
         return render_template("menu.html", classroom_names=classroom_names)
+    
+# @app.route("/delete")
+# def d():
+#     dele = requests.delete("http://127.0.0.1:8000/delete/novedades")
+#     return render_template("menu.html", dele=dele)
 
 @app.route("/banner")
 def banner():
@@ -300,28 +336,33 @@ def footer():
     return render_template("footer.html")
 
 @app.route("/novedada", methods=["GET", "POST"])
+@login_required
 def ada():
     idUSER = session.get('user_id')
     a=requests.get(f"http://127.0.0.1:8000/novedadesA/{idUSER}").json()
     msg = "NOVEDADES ABIERTAS"
     return render_template("novedades.html", msg=msg,a=a)
 
-
 @app.route("/novedadp")
+@login_required
 def novedadp():
     idUSER = session.get('user_id')
     cadena=requests.get(F"http://127.0.0.1:8000/novedadesP/{idUSER}").json()
     msg="NOVEDADES EN PROCESO"
+    print (cadena)
     return render_template("PROCESO.html",msg=msg,cadena=cadena)
 
 @app.route("/novedadc")
+@login_required
 def novedadc():
     idUSER = session.get('user_id')
     cadena=requests.get(f"http://127.0.0.1:8000/novedadesC/{idUSER}").json()
+    print (cadena)
     msg="NOVEDADES EN CERRADAS"
     return render_template("CERRADAS.html",msg=msg,cadena=cadena)
 
 @app.route("/r/<amb>")
+@login_required
 def resumen(amb):
     u1=Usuario()
     cadena=u1.ListarJson("/e/1")
@@ -332,6 +373,7 @@ def resumen(amb):
     return render_template("resumen.html",cadena=cadena,hay=1,msg=msg)
 
 @app.route("/r2")
+@login_required
 def resumen2():
     u1=Usuario()
     cadena=u1.ListarJson("/e/1")
@@ -341,6 +383,7 @@ def resumen2():
 
 
 @app.route("/ele")
+@login_required
 def equipamiento2():
     idUSER = session.get('user_id')
     elementos=requests.get(f"http://127.0.0.1:8000/allElements/{idUSER}").json()
@@ -350,17 +393,71 @@ def equipamiento2():
 
 
 @app.route("/carga_masiva", methods=['GET', 'POST'])
+@login_required
 def carga_masiva():
     return render_template("carga_masiva.html")
 
 
 @app.route("/res/<nov>")
+@login_required
 def respuestanov(nov):
     u1=Usuario()
     cadena=u1.ListarJson("/n/"+nov)
-    llenos=1
     msg=" RESPUESTA A NOVEDAD"
     return render_template("novprocesa.html",cadena=cadena,msg=msg)
+
+@app.route("/n/i",methods=['POST'])
+@login_required
+def salvarespuestanov():
+    idN=request.form.get("NOVEDADES")
+    idA=request.form.get("AMBIENTE")
+    estado=request.form.get("ESTADO")
+    respuesta=request.form.get("respuesta").upper()
+    descri1=request.form.get("DESCRI1").upper()
+    if estado==0:
+        estado=1
+    else:
+        estado=1
+    
+    
+    datos={
+            "idAMBIENTE":idA,
+            "idNOVEDADES":idN,
+            "DESCRIPCION":respuesta,
+            "ESTADO":estado,
+            "PADRE":idA,
+            "DESCRI1":descri1
+        }
+    print(datos)
+    
+    response = requests.post("http://127.0.0.1:8000/n/i", json=datos)
+    msg=" RESPUESTA A LA NOVEDAD GRABADA CORRECTAMENTE..."
+    return render_template("alertas.html",msgito=msg,regreso="/centro")
+
+@app.route("/n/d",methods=['POST','GET'])
+@login_required
+def cierrarespuestanov():
+    idN=request.form.get("NOVEDADES")
+    idA=request.form.get("AMBIENTE")
+    estado=request.form.get("ESTADO")
+    respuesta=request.form.get("respuesta").upper()
+    if estado == 0:
+        estado = 1  # In process
+    else:
+        estado = 2  # Closed
+    
+    datos={
+            "idAMBIENTE":idA,
+            "idNOVEDADES":idN,
+            "DESCRIPCION":respuesta,
+            "ESTADO":estado,
+            "PADRE":idA
+        }
+    print(datos)
+    
+    response = requests.post("http://127.0.0.1:8000/n/d", json=datos)
+    msg=" LA NOVEDAD CERRADA CORRECTAMENTE..."
+    return render_template("alertas.html",msgito=msg,regreso="/centro")
 
 
 @app.route("/aprendiz", methods = ['GET'])
@@ -404,6 +501,21 @@ def email():
             {"FECHA": "2023-10-01", "DESCRIPCION": "Descripción de ejemplo"}
         ]
         return render_template("novprocesa.html")
+    
+
+@login_manager.user_loader
+def load_user(user_id):
+    USER = requests.get(f"http://127.0.0.1:8000/apilogin").json()
+    for u in USER:
+        if u["idUSUARIO"] == int(user_id):
+            return Login(u)  
+    return None
+
+@app.route("/logout", methods = ["GET", "POST"])
+@login_required
+def logout():
+    logout_user()
+    return render_template("login.html")
 
 if __name__ == '__main__':
     app.run(debug=True,host='0.0.0.0',port=5000)

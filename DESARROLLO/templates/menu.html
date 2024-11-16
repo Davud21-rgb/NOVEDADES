@@ -24,6 +24,9 @@
               <li><i class='far  fa-window-restore'></i>
                 <a href="/novedadc" target=centro>CERRADA</a>
               </li>
+              <!-- <li>
+                <a href="/delete" target="centro">DELETE ALL</a>
+              </li> -->
             </ul>
           </li>
           <li><span class="caret">&#10133; EQUIPAMIENTO</span>
@@ -50,6 +53,8 @@
     </ul>
     </li>
     </ul>
+    <br>
+    <a id="logout" href="{{ url_for('logout') }}"><input type="button" class="w3-button w3-round w3-red" value="CERRAR SESION"></a>
 </div>
 </div>
 <script>
@@ -62,6 +67,11 @@
       this.classList.toggle("caret-down");
     });
   }
+
+  document.getElementById('logout').addEventListener('click', function(event) {
+    event.preventDefault();  // Prevent default anchor behavior
+    window.top.location.href = "/";  // Reload the top frame
+  });
 </script>
 
 {% endblock content %}

@@ -1,10 +1,11 @@
-import datetime
 from flask import Flask, jsonify,render_template,request,redirect
 import pandas as pd
 import requests
 from flask_cors import CORS
 import sqlite3
 import json
+
+from datetime import datetime
 
 from sqlalchemy import null
 from  services.adaptador import *
@@ -19,6 +20,14 @@ app.bd="novedades.db"
 @app.route("/apilogin")
 def datos():
     sql=f"SELECT * FROM USUARIO"
+    u1=Usuario(app.bd)
+    todo=u1.ConsultarJson(sql)
+    return(todo)
+
+
+@app.route("/apilogin/<idUSUARIO>")
+def loginn(idUSUARIO):
+    sql = f"SELECT * FROM USUARIO WHERE idUSUARIO = {idUSUARIO}"
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
     return(todo)
@@ -55,16 +64,13 @@ def classrooms():
 @app.route("/novedadesA/<idUSER>")
 def listar(idUSER):
     sql = f"""
-    SELECT DISTINCT
-        n.idNOVEDADES,
-        e.ESTACION AS estacion,
-        n.FECHA AS fecha,
-        n.DESCRIPCION AS descripcion
-    FROM NOVEDADES n
-    JOIN AMBIENTE a ON n.idAMBIENTE = a.idAMBIENTE
-    JOIN EQUIPAMIENTO e ON a.idAMBIENTE = e.idAMBIENTE
-    WHERE n.ESTADO = 0
-    AND a.idCUENTADANTE = {idUSER};
+    SELECT 
+    idNOVEDADES,
+    NOMBRE as nombre,
+    FECHA as fecha,
+    DESCRIPCION as descripcion 
+    FROM VNOVEDADUNO
+    WHERE ESTADO = 0 AND idCUENTADANTE = {idUSER}
     """
     
     print(f"Executing SQL: {sql}")  # Debug output
@@ -81,17 +87,13 @@ def listar(idUSER):
 @app.route("/novedadesP/<idUSER>")
 def listar2(idUSER):
     sql = f"""
-    SELECT DISTINCT
-        n.idNOVEDADES,
-        e.ESTACION AS estacion,
-        n.FECHA AS fecha,
-        n.DESCRIPCION AS descripcion,
-        e.OBSERVACION AS observacion
-    FROM NOVEDADES n
-    JOIN AMBIENTE a ON n.idAMBIENTE = a.idAMBIENTE
-    JOIN EQUIPAMIENTO e ON a.idAMBIENTE = e.idAMBIENTE
-    WHERE n.ESTADO = 1
-    AND a.idCUENTADANTE = {idUSER};
+    SELECT 
+    idNOVEDADES,
+    NOMBRE as nombre,
+    FECHA as fecha,
+    DESCRIPCION as descripcion 
+    FROM VNOVEDADUNO
+    WHERE ESTADO = 1 AND idCUENTADANTE = {idUSER}
     """
     
     print(f"Executing SQL: {sql}")  # Debug output
@@ -109,18 +111,14 @@ def listar2(idUSER):
 @app.route("/novedadesC/<idUSER>")
 def listar3(idUSER):
     sql = f"""
-    SELECT DISTINCT
-        n.idNOVEDADES,
-        e.ESTACION AS estacion,
-        n.FECHA AS fecha,
-        n.DESCRIPCION AS descripcion,
-        v.ESTADO AS estado
-    FROM NOVEDADES n
-    JOIN AMBIENTE a ON n.idAMBIENTE = a.idAMBIENTE
-    JOIN EQUIPAMIENTO e ON a.idAMBIENTE = e.idAMBIENTE
-    JOIN VAMBIENTE v ON n.idNOVEDADES = v.idNOVEDADES
-    WHERE v.ESTADO = 'CERRADA'
-    AND a.idCUENTADANTE = {idUSER};
+    SELECT 
+    idNOVEDADES,
+    NOMBRE as nombre,
+    FECHA as fecha,
+    DESCRIPCION as descripcion ,
+    ESTADO as estado
+    FROM VNOVEDADUNO
+    WHERE ESTADO = 2 AND idCUENTADANTE = {idUSER}
     """
     
     print(f"Executing SQL: {sql}")  # Debug output
@@ -150,15 +148,7 @@ def FEstado(estado):
     return estado
     
 @app.route("/ln/<estado>/<amb>")
-def listarNovXamb(estado,amb):    
-    
-    # estado=estado.upper()
-    # if estado=="A":
-    #     estado="ABIERTA"
-    # elif estado=="P":
-    #     estado="PROCESO"
-    # elif estado=="C":
-    #     estado="CERRADA"
+def listarNovXamb(estado,amb):
     estado=FEstado(estado)
     if amb !="0":
         sql="select * from VNOVEDAD where estados='"+estado+"' and idambiente="+amb+" and padre=idnovedades"
@@ -169,6 +159,7 @@ def listarNovXamb(estado,amb):
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
     return(todo)
+
 @app.route("/ln/l/<novedad>")
 def listarNovedad(novedad): 
      sql="select * from VNOVEDAD where padre="+novedad
@@ -411,54 +402,56 @@ def massive_load():
 
 
 
-@app.route("/n/i",methods = ['POST'])
-def CrearNoved(): 
-    datos=request.get_json()
-    idA=datos['idAMBIENTE']
-    idN=datos['idNOVEDADES']
-    descri=datos['DESCRIPCION'].upper()
-    descri1=datos['DESCRI1'].upper()
-    estado=datos['ESTADO']
-    padre=datos['PADRE']
-    match = descri1.rfind   ("[PROCESO]")
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    sql1="insert into NOVEDADES(idAMBIENTE, FECHA ,DESCRIPCION, ESTADO,PADRE) values("+str(idA)+",'"+current_date+"','"+descri+"',1,"+str(idN)+")"
-    con=sqlite3.connect("novedades.db")  
-    cursor=con.cursor()
+from datetime import datetime
+import sqlite3
+from flask import request, jsonify
 
-    if match>0:
-        sql2="update NOVEDADES set ESTADO=1,DESCRIPCION=concat(DESCRIPCION,'') where idNOVEDADES="+str(idN)
+@app.route("/n/i", methods=['POST'])
+def CrearNoved():
+    datos = request.get_json()
+    idA = datos['idAMBIENTE']
+    idN = datos['idNOVEDADES']
+    descri = datos['DESCRIPCION']
+    estado = datos['ESTADO']
+    current_date = datetime.now()
+    current_date_without_ms = current_date.replace(microsecond=0)
+
+    con = sqlite3.connect("novedades.db")
+    cursor = con.cursor()
+
+    # Update the existing novelty's status and description
+    if estado > 0:
+        sql2 = "UPDATE NOVEDADES SET ESTADO = 1, DESCRIPCION = ?, FECHA = ? WHERE idNOVEDADES = ?"
+        cursor.execute(sql2, (descri, current_date_without_ms, idN))
     else:
-        sql2="update NOVEDADES set ESTADO=1,DESCRIPCION=concat(DESCRIPCION,'[PROCESO]') where idNOVEDADES="+str(idN)
-    print("-**********>",descri,match)
-    
-    cursor.execute(sql1)
-    cursor.execute(sql2)
+        sql2 = "UPDATE NOVEDADES SET ESTADO = 1, DESCRIPCION = ?, FECHA = ? WHERE idNOVEDADES = ?"
+        cursor.execute(sql2, (descri, current_date_without_ms, idN))
+
     con.commit()
     con.close()
-    print(sql1)
-    return(sql2)
+    return "Updated novelty to in-process."
 
+@app.route("/n/d", methods=['POST'])
+def CerrarNoved():
+    datos = request.get_json()
+    idA = datos['idAMBIENTE']
+    idN = datos['idNOVEDADES']
+    descri = datos['DESCRIPCION']
+    current_date = datetime.now()
+    current_date_without_ms = current_date.replace(microsecond=0)
 
-@app.route("/n/d",methods = ['POST'])
-def CerrarNoved(): 
-    datos=request.get_json()
-    idA=datos['idAMBIENTE']
-    idN=datos['idNOVEDADES']
-    descri=datos['DESCRPCION'].upper()
-    estado=datos['ESTADO']
-    padre=datos['PADRE']
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    sql1="insert into NOVEDADES(idAMBIENTE, FECHA, DESCRIPCION, ESTADO,PADRE) values("+str(idA)+",'"+current_date+"','"+descri+"',2,"+str(idN)+")"
-    con=sqlite3.connect("novedades.db")  
-    cursor=con.cursor()
-    sql2="update NOVEDADES set ESTADO=2,DESCRIPCION=concat(DESCRIPCION,'[CERRADA]')  where PADRE="+str(idN)
-    cursor.execute(sql1)
-    cursor.execute(sql2)
+    con = sqlite3.connect("novedades.db")
+    cursor = con.cursor()
+
+    # Update the existing novelty to closed status and append '[CERRADA]' to description
+    sql2 = "UPDATE NOVEDADES SET ESTADO = 2, DESCRIPCION = ?, FECHA = ? WHERE idNOVEDADES = ?"
+    cursor.execute(sql2, (descri, current_date_without_ms, idN))
+
     con.commit()
     con.close()
-    print(sql1)
-    return(sql2)
+    return "Updated novelty to closed."
+
+
 
 
 @app.route("/nov/proceso", methods = ['GET'])
@@ -471,6 +464,16 @@ def novProceso():
     con.close()
     return(sql)
 
+
+@app.route("/delete/novedades", methods=['DELETE'])
+def deleteAll():
+    sql = "DELETE FROM NOVEDADES"
+    con=sqlite3.connect("novedades.db")  
+    cursor=con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()
+    return(sql)
 
     
   

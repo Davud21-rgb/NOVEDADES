@@ -81,3 +81,8 @@ box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);padding-left:20px;text-decoration
     border-radius: 10px;       /* roundness of the scroll thumb */
     border: 5px solid rgba(4, 156, 80, 0.123);  /* creates padding around scroll thumb */
   }
+
+
+  #logout{
+    font-size: small;
+  }

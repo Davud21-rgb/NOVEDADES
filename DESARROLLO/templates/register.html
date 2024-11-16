@@ -17,7 +17,11 @@
         </div>
         <div class="mb-3">
           <label for="rol" class="form-label">Rol</label>
-          <input type="number" class="form-control" id="rol" aria-describedby="rol" name="rol">
+          <select class="form-select" name="rol" id="rol" required>
+            <option value="0">APRENDIZ</option>
+            <option value="1">INSTRUCTOR</option>
+            <option value="2">CUENTADANTE</option>
+          </select>
           <div id="rol" class="form-text"></div>
         </div>
           <div class="mb-3">

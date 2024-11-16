@@ -12,15 +12,16 @@
         </tr>
         {% for datos in cadena %}
         <tr>
-            <td>{{ datos.estacion }}</td>
+            <td>{{ datos.nombre }}</td>
             <td>{{ datos.fecha }}</td>
             <td>{{ datos.descripcion }}</td>
             <td>{{ datos.observacion }}</td>
             <td>
-                <a href="/res/{{ datos.idNOVEDADES }}">
-                    <i class='far fa-stop-circle' style='font-size:24px'></i>
+                <a href="/res/{{datos.idNOVEDADES}}" title="Dar respuestas a la novedad">
+                    <i class='fas fa-microphone' style='font-size:24px'></i></a>
                 </a>
-                <i class='fas fa-database' style='font-size:24px'></i>
+                <a href="/centro" title="Regresar">
+                    <i class='far fa-arrow-alt-circle-left' style='font-size:24px'></i></a>
             </td>
         </tr>
         {% endfor %}

@@ -3,18 +3,39 @@
 <center>
     <h2 class="caret-sombra-red">{{msg}}</h2>
     <center>
-<form method=post action="">
-<table class="table table-striped table-bordered border=1 tabla" style="width:40%;" BORDER=1>
-{%for dato in cadena%}
-<td>FECHA</td><td>{{dato.FECHA}}</td></tr>
-<td>DESCRIPCION</td><td ><textarea cols=60 rows=4 name=descripcion>{{dato.DESCRIPCION}}</textarea></td></tr> 
-<td>RESPUESTA</td><td><textarea cols=60 rows=4  name=respuesta></textarea></td></tr> 
-{%endfor%}
-</table>
-<!-- <a href="/respuesta" class="btn btn-outline-primary btn-sm" style="width:20%;" target="centro">RESPONDER</a> -->
-<input type="submit" value="RESPONDER" class="btn btn-outline-primary btn-sm" style="width:20%;" target="centro">
-<a href="/centro" class="btn btn-outline-warning  btn-sm" style="width:20%;" target="centro">CANCELAR</a>
-</form>
+        
+        {% for dato in cadena %}
+            <form class="needs-validation" id="mio_{{ dato.idNOVEDADES }}" method="POST" action="">
+                <table class="table table-striped table-bordered tabla" style="width:60%;" BORDER=1>
+                    <input type="hidden" name="NOVEDADES" value="{{ dato.idNOVEDADES }}">
+                    <input type="hidden" name="ESTADO" value="{{ dato.ESTADO }}">
+                    <input type="hidden" name="AMBIENTE" value="{{ dato.idAMBIENTE }}">
+                    <input type="hidden" name="CUENTADANTE" value="{{ dato.IDCUENTADANTE }}">
+                    <input type="hidden" name="DESCRI1" value="{{ dato.DESCRIPCION }}">
+
+                    <tr><td><label class="form-label">FECHA</label></td><td>{{ dato.FECHA }}</td></tr>
+                    <tr><td><label class="form-label" for="DESCRIPCION">DESCRIPCION</label></td>
+                        <td><textarea class="form-control" cols="60" rows="4" name="descripcion" disabled>{{ dato.DESCRIPCION }}</textarea></td>
+                    </tr>
+                    <tr><td><label class="form-label" for="respuesta">RESPUESTA</label></td>
+                        <td><textarea cols="60" rows="4" id="respuesta_{{ dato.idNOVEDADES }}" name="respuesta" class="form-control" required></textarea></td>
+                    </tr>
+                </table>
+                <button onclick="Ir(1, '{{ dato.idNOVEDADES }}')" class="btn btn-outline-primary btn-sm" style="width:20%;" target="centro">
+                    <i class='fas fa-archive' style='font-size:24px'></i>
+                    RESPONDER
+                </button>
+                <button onclick="Ir(2, '{{ dato.idNOVEDADES }}')" class="btn btn-outline-danger btn-sm" style="width:20%;" target="centro">
+                    <i class='fas fa-business-time' style='font-size:24px'></i>
+                    CERRAR LA NOVEDAD
+                </button>
+                <a href="/novedada" class="btn btn-outline-warning btn-sm" style="width:20%;" target="centro">
+                    <i class='far fa-hand-point-left' style='font-size:24px'></i>
+                    CANCELAR
+                </a>
+            </form>
+        {% endfor %}
 </div>
 
-{% endblock content %}
+<script src="{{ url_for('static', filename='js/novedades.js') }}"></script>
+{% endblock %}
