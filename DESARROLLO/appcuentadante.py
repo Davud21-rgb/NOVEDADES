@@ -237,30 +237,34 @@ def register():
 def login():
     if request.method == 'POST':
         email = request.form.get("email")
-        passwords = request.form.get("password")
+        password = request.form.get("password")
 
-        u1 = Usuario()
-        cadena = u1.ListarJson("/apilogin")
-        cuentadante_encontrado = False
+        # Fetch user data from your API
+        u1 = Usuario()  # Assuming Usuario class is used to interact with your API
+        users_data = u1.ListarJson("/apilogin")
+        user_found = False
 
-        for c in cadena:
-            if len(c) >= 5 and email == c['email'] and passwords == c['password']:
-                if c['rol'] == 2:
-                    user = Login(c)
-                    login_user(user)
-                    cuentadante_encontrado = True
+        for user in users_data:
+            # Compare email and password
+            if email == user['email'] and password == user['password']:
+                # Ensure user role is valid (e.g., rol == 2 for 'cuentadante')
+                if user['rol'] == 2:
+                    user_obj = Login(user)  # Create the Login object
+                    login_user(user_obj)  # Store user in the session
+                    user_found = True
                     break
                 else:
-                    flash(f"El instructor con el email... {c['email']} NO es un cuentadante.")
+                    flash(f"The user with email {user['email']} is not a cuentadante.")
                     return redirect(url_for("login"))
 
-        if cuentadante_encontrado:
+        if user_found:
             return redirect(url_for('home'))
         else:
-            flash("The email or password is incorrect")
+            flash("Incorrect email or password.")
             return redirect(url_for("login"))
 
     return render_template("login.html")
+
 
 
 
@@ -305,12 +309,26 @@ def home():
     return render_template("index.html")
 
 @app.route("/menu")
+@login_required
 def menu():
-    current_user_id = session.get('user_id')
-    if current_user_id:
-        lulo = requests.get(f"http://127.0.0.1:8000/ambippp/{current_user_id}").json()
-        classroom_names = [a['nombre'] for a in lulo]
-        return render_template("menu.html", classroom_names=classroom_names)
+    if current_user.is_authenticated:
+        try:
+            response = requests.get(f"http://127.0.0.1:8000/ambippp/{current_user.idUSUARIO}")
+            
+            if response.status_code == 200:
+                lulo = response.json()
+                classroom_names = [a["nombre"] for a in lulo]
+                return render_template("menu.html", classroom_names=classroom_names)
+            else:
+                flash("Failed to load classroom data.")
+                return redirect(url_for('home'))
+        except requests.exceptions.RequestException as e:
+            flash(f"Error fetching data: {e}")
+            return redirect(url_for('home'))
+    else:
+        flash("You must be logged in to access this page.")
+        return redirect(url_for('login'))
+
     
 # @app.route("/delete")
 # def d():
@@ -338,28 +356,28 @@ def footer():
 @app.route("/novedada", methods=["GET", "POST"])
 @login_required
 def ada():
-    idUSER = session.get('user_id')
-    a=requests.get(f"http://127.0.0.1:8000/novedadesA/{idUSER}").json()
-    msg = "NOVEDADES ABIERTAS"
-    return render_template("novedades.html", msg=msg,a=a)
+    if current_user.is_authenticated:
+        a=requests.get(f"http://127.0.0.1:8000/novedadesA/{current_user.idUSUARIO}").json()
+        msg = "NOVEDADES ABIERTAS"
+        return render_template("novedades.html", msg=msg,a=a)
 
 @app.route("/novedadp")
 @login_required
 def novedadp():
-    idUSER = session.get('user_id')
-    cadena=requests.get(F"http://127.0.0.1:8000/novedadesP/{idUSER}").json()
-    msg="NOVEDADES EN PROCESO"
-    print (cadena)
-    return render_template("PROCESO.html",msg=msg,cadena=cadena)
+    if current_user.is_authenticated:
+        cadena=requests.get(F"http://127.0.0.1:8000/novedadesP/{current_user.idUSUARIO}").json()
+        msg="NOVEDADES EN PROCESO"
+        print (cadena)
+        return render_template("PROCESO.html",msg=msg,cadena=cadena)
 
 @app.route("/novedadc")
 @login_required
 def novedadc():
-    idUSER = session.get('user_id')
-    cadena=requests.get(f"http://127.0.0.1:8000/novedadesC/{idUSER}").json()
-    print (cadena)
-    msg="NOVEDADES EN CERRADAS"
-    return render_template("CERRADAS.html",msg=msg,cadena=cadena)
+    if current_user.is_authenticated:
+        cadena=requests.get(f"http://127.0.0.1:8000/novedadesC/{current_user.idUSUARIO}").json()
+        print (cadena)
+        msg="NOVEDADES EN CERRADAS"
+        return render_template("CERRADAS.html",msg=msg,cadena=cadena)
 
 @app.route("/r/<amb>")
 @login_required
@@ -385,11 +403,11 @@ def resumen2():
 @app.route("/ele")
 @login_required
 def equipamiento2():
-    idUSER = session.get('user_id')
-    elementos=requests.get(f"http://127.0.0.1:8000/allElements/{idUSER}").json()
-    print (elementos)
-    msg=" ELEMENTOS DEL AMBIENTE DE FORMACION EN CUENTADANCIA"
-    return render_template("equipamiento.html",msg=msg,elementos=elementos)
+    if current_user.is_authenticated:
+        elementos=requests.get(f"http://127.0.0.1:8000/allElements/{current_user.idUSUARIO}").json()
+        print (elementos)
+        msg=" ELEMENTOS DEL AMBIENTE DE FORMACION EN CUENTADANCIA"
+        return render_template("equipamiento.html",msg=msg,elementos=elementos)
 
 
 @app.route("/carga_masiva", methods=['GET', 'POST'])
@@ -505,11 +523,22 @@ def email():
 
 @login_manager.user_loader
 def load_user(user_id):
-    USER = requests.get(f"http://127.0.0.1:8000/apilogin").json()
-    for u in USER:
-        if u["idUSUARIO"] == int(user_id):
-            return Login(u)  
+    try:
+        # Fetch all users (or fetch by ID if your API supports that)
+        response = requests.get(f"http://127.0.0.1:8000/apilogin")
+        if response.status_code == 200:
+            users = response.json()  # List of users
+
+            # Find the user by idUSUARIO
+            for user in users:
+                if user["idUSUARIO"] == int(user_id):
+                    return Login(user)  # Return the Login object
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching user data: {e}")
+
     return None
+
 
 @app.route("/logout", methods = ["GET", "POST"])
 @login_required
