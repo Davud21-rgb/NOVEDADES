@@ -5,6 +5,10 @@ from flask_cors import CORS
 import sqlite3
 import json
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 from datetime import datetime
 
 from sqlalchemy import null
@@ -405,6 +409,84 @@ def massive_load():
 from datetime import datetime
 import sqlite3
 from flask import request, jsonify
+
+
+# Function to send the email
+def send_email(to_email, subject, body):
+    try:
+        sender_email = "" #Mi email
+        sender_password = "" #Mi contraseña de las apps de Google
+        smtp_server = "smtp.gmail.com" #Gmail
+        smtp_port = 587 #Puerto de Gmail
+
+        message = MIMEMultipart()
+        message["From"] = sender_email
+        message["To"] = to_email
+        message["Subject"] = subject
+        message.attach(MIMEText(body, "plain"))
+
+        #CONFIGURACION PARA ENVIAR EMAIL
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+
+        server.sendmail(sender_email, to_email, message.as_string())
+        server.close()
+
+        print("Email sent successfully")
+
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+
+#INSERTAR UNA NOVEDAD POR CONSOLA
+@app.route("/newNovelty", methods=['POST'])
+def newNovelty():
+    idNovedades = 52
+    idAMBIENTE = 3
+    current_date = datetime.now()
+    current_date_without_ms = current_date.replace(microsecond=0)
+    DESCRIPCION = 'prueba con correo 3'
+    ESTADO = 0
+    PADRE = None
+
+    con = sqlite3.connect("novedades.db", timeout=5)
+    cursor = con.cursor()
+
+    try:
+        sql = """
+        INSERT INTO NOVEDADES (idNovedades, idAMBIENTE, FECHA, DESCRIPCION, ESTADO, PADRE)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """
+        cursor.execute(sql, (idNovedades, idAMBIENTE, current_date_without_ms, DESCRIPCION, ESTADO, PADRE))
+        con.commit()
+        print("Insert successful")
+
+        cursor.execute("SELECT IDCUENTADANTE FROM AMBIENTE WHERE idAMBIENTE = ?", (idAMBIENTE,))
+        accountant_id = cursor.fetchone()
+
+        if accountant_id:
+            cursor.execute("SELECT email FROM USUARIO WHERE idUSUARIO = ? AND rol = 2", (accountant_id[0],))
+            accountant_email = cursor.fetchone()
+
+            if accountant_email:
+                subject = "Nueva novedad insertada"
+                body = f"Una nueva novedad ha sido agregada:\n\nID: {idNovedades}\nDescripción: {DESCRIPCION}\nFecha: {current_date_without_ms}"
+                send_email(accountant_email[0], subject, body)
+            else:
+                print(f"No accountant found for ID {accountant_id[0]}")
+        else:
+            print(f"No accountant associated with classroom ID {idAMBIENTE}")
+
+    except sqlite3.OperationalError as e:
+        print("Database error:", e)
+        return "Database error", 500
+
+    finally:
+        con.close()
+
+    return "Insert and email sent successfully"
+    
 
 @app.route("/n/i", methods=['POST'])
 def CrearNoved():

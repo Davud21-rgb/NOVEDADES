@@ -486,6 +486,7 @@ def aprendiz():
     filtered_data = [dato for dato in elementos if dato['ESTACION'] == search_number]
     return render_template("estudiante.html", elementos=filtered_data)
 
+
 @app.route("/web/email", methods=["GET", "POST"])
 def email():
     if request.method == "POST":
