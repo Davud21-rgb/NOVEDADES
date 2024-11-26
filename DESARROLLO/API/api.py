@@ -355,9 +355,9 @@ def InsertEqui():
     estado = request.form['estado']
     serial = request.form['serial']
     estacion = request.form['estacion']
-    observacion = None  # Use None for NULL value
+    observacion = None
 
-    con = sqlite3.connect("novedades.db", timeout=5)  # Add timeout to wait for unlock
+    con = sqlite3.connect("novedades.db", timeout=5)
     cursor = con.cursor()
 
     try:

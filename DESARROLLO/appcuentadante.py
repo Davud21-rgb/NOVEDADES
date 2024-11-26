@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request, redirect, url_for, flash, session, g
+from flask import Flask, jsonify,render_template,request, redirect, url_for, flash, session, g
 import requests
 from flask_cors import CORS
 import json
@@ -301,7 +301,7 @@ def nuevo_elemento():
     am = u1.ambientesss()
     e =u1.elem()
     return render_template("nuevo_elemento.html",am=am,e=e)
-        
+
 
 @app.route("/home")
 @login_required
