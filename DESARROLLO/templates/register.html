@@ -6,28 +6,27 @@
 
 {% block content %}
   <div class="login-page">
-    <h3>CUENTADANTE DEL AMBIENTE VIRTUAL</h3>
+    <h2 class="caret-sombra-red">CUENTADANTE DEL AMBIENTE VIRTUAL</h3>
     <div class="form">
-      <h2>Datos personales</h2>
+      <h4 class="caret-sombra-red">Datos personales</h2>
       <form method="POST">
         <div class="mb-3">
           <label for="nombr" class="form-label">Nombre y apellidos</label>
           <input type="text" class="form-control" id="nombre" aria-describedby="nombre" name="nombre">
           <div id="nombre" class="form-text"></div>
         </div>
+        <div class="nuevo_ele">
+          <input type="hidden" name="rol" value="{{ accountant }}">
+        </div>
         <div class="mb-3">
-          <label for="rol" class="form-label">Rol</label>
-          <select class="form-select" name="rol" id="rol" required>
-            <option value="0">APRENDIZ</option>
-            <option value="1">INSTRUCTOR</option>
-            <option value="2">CUENTADANTE</option>
-          </select>
-          <div id="rol" class="form-text"></div>
+          <label for="cedula" class="form-label">Cédula</label>
+          <input type="number" class="form-control" id="cedula" aria-describedby="cedula" name="cedula">
+          <div id="cedula" class="form-text"></div>
         </div>
           <div class="mb-3">
             <label for="email" class="form-label">Correo Electronico</label>
             <input type="text" class="form-control" id="email" aria-describedby="email" name="email">
-            <div id="emailree" class="form-text"></div>
+            <div id="email" class="form-text"></div>
           </div>
           <div class="mb-3">
             <label for="exampleInputPassword1" class="form-label">Contraseña</label>
@@ -35,15 +34,15 @@
           </div>
           <div class="mb-3">
             <label for="ambiente" class="form-label">Ambiente</label>
-            <select class="form-select" name="ambiente" id="idAMBIEBTE" required>
+            <select class="form-select" name="ambiente" id="idAMBIENTE" required>
               <option selected disabled>Asigne un ambiente</option>
               {% for ambiente in a %}
                 <option value="{{ ambiente.idAMBIENTE }}">{{ ambiente.nombre }}</option>
               {% endfor %}
             </select>
-          </div>
+          </div>          
           <button id="btnAddNewUser" type="submit" class="btn btn-success">Registrar</button>
-      </form>
+        </form>
       {% include 'mensajes.html' %}
     </div>
   </div>

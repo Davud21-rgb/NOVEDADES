@@ -193,22 +193,68 @@ def equipamiento(amb):
     return(todo)
 
 
-@app.route("/allElements/<idUSER>")
+@app.route("/allElements/<idUSER>", methods=['GET'])
 def allEle(idUSER):
     sql = f"""
     SELECT DISTINCT
-        equi.idAMBIENTE,
-        equi.TIPO AS tipo,
-        equi.SERIAL AS serial,
-        equi.ESTACION AS estacion,
-        equi.ESTADO AS estado
-    FROM VEQUIPAMIENTO equi
+    equi.idEQUIPAMIENTO,
+    equi.idAMBIENTE,
+    equi.idTIPOELEMENTO as idTIPOELEMENTO,
+    equi.ESTADO as estado,
+    equi.SERIAL as serial,
+    equi.ESTACION as estacion
+    FROM EQUIPAMIENTO equi
     JOIN AMBIENTE a ON equi.idAMBIENTE = a.idAMBIENTE
     WHERE a.idCUENTADANTE = {idUSER};
     """
-    u1=Usuario(app.bd)
-    todo=u1.ConsultarJson(sql)
-    return(todo)
+    u1 = Usuario(app.bd)
+    todo = u1.ConsultarJson(sql)
+    
+    # Ensure the result is a valid JSON response
+    if todo is None:
+        return jsonify({"error": "No data found"}), 404
+    
+    return jsonify(todo)
+
+#getting one element to edit
+@app.route("/editEle/<ele>", methods = ['GET'])
+def allEle2(ele):
+    sql = f"""    
+    SELECT DISTINCT
+    idEQUIPAMIENTO,
+    idAMBIENTE,
+    idTIPOELEMENTO as tipo,
+    ESTADO as estado,
+    SERIAL as serial,
+    ESTACION as estacion FROM equipamiento equi WHERE idEQUIPAMIENTO = {ele}"""
+    u1 = Usuario(app.bd)
+    todo = u1.ConsultarJson(sql)
+    
+    if not todo:
+        return jsonify({"error": "No data found for the given ID"}), 404
+    
+    return jsonify(todo)
+
+#EDIT THE ELEMENT
+# @app.route("/elemento/u", methods = ['PUT'])
+# def EditaElemento():
+#     datos = request.get_json()
+#     id = datos['idEQUIPAMIENTO']
+#     idAMBIENTE = datos['idAMBIENTE']
+#     idTIPOELEMENTO = datos['idTIPOELEMENTO']
+#     NOMBRE = datos['nombre']
+#     ESTADO = datos['estado']
+#     SERIAL = datos['serial']
+#     ESTACION = datos['estacion']
+#     OBSERVACION = datos['observacion']
+#     sql = "UPDATE EQUIPAMIENTO SET nombrePT = '"+nombrePT+"' WHERE idPuestoTrabajo = "+str(id)
+#     try:
+#         con = sqlite3.connect("novedades.db")
+#         todo = con.Ejecutar("novedades.db", sql)
+#         return "OK"
+#     except Exception as e:
+#         print("An error occurred:", str(e))
+#         return "Error: Internal Server Error"
 
 @app.route("/allEle")
 def allElle():
@@ -262,9 +308,10 @@ def infoD(amb):
     todo=u1.ConsultarJson(sql)
     print(todo)
     return todo
+
 @app.route("/n/<nove>")
 def actualizanov(nove):    
-    sql="select *,(select count(*) cantidad from novedades n  where n.idnovedades=v.idnovedades ) CANTNOV from VNOVEDADUNO v where  v.idnovedades="+nove    
+    sql="select *,(select count(*) cantidad from novedades n where n.idNOVEDADES=v.idNOVEDADES ) CANTNOV from VNOVEDADUNO v where  v.idNOVEDADES="+nove    
     u1=Usuario(app.bd)
     todo=u1.ConsultarJson(sql)
     return(todo)
@@ -279,18 +326,20 @@ def ambiente2(col,dat):
 #INSERTAR REGISTER
 @app.route("/i", methods=['POST'])
 def InserteUsuario():
+    accountant = 2
     datos = request.get_json()
     nombre = datos['nombre']
-    rol = datos['rol']
+    rol = accountant
+    cedula = datos['cedula']
     email = datos['email']
     password = datos['password']
 
-    sql = "INSERT INTO USUARIO (nombre, rol, email, password) VALUES (?, ?, ?, ?)"
+    sql = "INSERT INTO USUARIO (nombre, rol, cedula, email, password) VALUES (?, ?, ?, ?, ?)"
     con = sqlite3.connect("novedades.db")
     cursor = con.cursor()
 
     try:
-        cursor.execute(sql, (nombre, rol, email, password))
+        cursor.execute(sql, (nombre, rol, cedula, email, password))
         con.commit()
         user_id = cursor.lastrowid
         return jsonify({"id": user_id, "message": "User inserted successfully"}), 200 # Return the ID
@@ -349,23 +398,23 @@ def AsigAmb():
 #INSERTAR EQUIPAMIENTO
 @app.route("/i/e", methods=['POST'])
 def InsertEqui():
-    ambiente = request.form['ambiente']
+    idAMBIENTE = request.form['idAMBIENTE']
     idTIPOELEMENTO = request.form['idTIPOELEMENTO']
-    nombre = request.form['nombre']
     estado = request.form['estado']
     serial = request.form['serial']
     estacion = request.form['estacion']
     observacion = None
 
-    con = sqlite3.connect("novedades.db", timeout=5)
+    con = sqlite3.connect("novedades.db", timeout=2)
     cursor = con.cursor()
 
     try:
         sql = """
-        INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, NOMBRE, ESTADO, SERIAL, ESTACION, OBSERVACION)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, ESTADO, SERIAL, ESTACION, OBSERVACION)
+        VALUES (?, ?, ?, ?, ?, ?)
         """
-        cursor.execute(sql, (ambiente, idTIPOELEMENTO, nombre, estado, serial, estacion, observacion))
+
+        cursor.execute(sql, (idAMBIENTE, idTIPOELEMENTO, estado, serial, estacion, observacion))
         con.commit()
         print("Insert successful")
     except sqlite3.OperationalError as e:
@@ -378,7 +427,7 @@ def InsertEqui():
 
 
 
-@app.route("/massive/load", methods=["POST"])
+@app.route("/massive/load", methods=["POST","GET"])
 def massive_load():
     file = request.files.get('myfile')
     if file and (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
@@ -388,12 +437,11 @@ def massive_load():
 
         for _, row in df.iterrows():
                     cursor.execute("""
-                        INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, NOMBRE, ESTADO, SERIAL, ESTACION, OBSERVACION)
+                        INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, ESTADO, SERIAL, ESTACION, OBSERVACION)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                     """, (
                         row['idAMBIENTE'],
                         row['idTIPOELEMENTO'],
-                        row['NOMBRE'],
                         row['ESTADO'],
                         row['SERIAL'],
                         row['ESTACION'],
@@ -486,6 +534,7 @@ def newNovelty():
         con.close()
 
     return "Insert and email sent successfully"
+
     
 
 @app.route("/n/i", methods=['POST'])

@@ -196,3 +196,21 @@ border: 0px;
     display: none;
   }
 }
+
+h2,h4{
+  text-align: center;
+}
+
+.form-ele{
+  border: 1px solid black;
+  box-shadow: #000000;
+  width: 90;
+}
+
+.nuevo_ele{
+  display: flex;
+  flex-direction: column;
+  /* flex-flow:; */
+  align-content: center;
+  width: 30%;
+}

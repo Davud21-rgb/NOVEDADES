@@ -10,24 +10,40 @@
             <th><b>SERIAL</b></th>
             <th><b>TIPO</b></th>
             <th><b>ESTADO</b></th>
-            <th><b>ACCION</b></th>
+            <th><b>EDITAR</b></th>
+            <th><b>ELIMINAR</b></th>
         </tr>
         {% for datos in elementos %}
         <tr>
             <td>{{ datos.estacion }}</td>
             <td>{{ datos.serial }}</td>
-            <td>{{ datos.tipo }}</td>
-            <td>{{ datos.estado }}</td>
+            <td>{{ datos.idTIPOELEMENTO }}</td>
             <td>
-                <a href="/res/{{ datos.idAMBIENTE }}">
-                    <i class='far fa-stop-circle' style='font-size:24px'></i>
-                </a>
-                <i class='fas fa-database' style='font-size:24px'></i>
+                {% if datos.estado == 1 %}
+                    Bueno
+                {% elif datos.estado == 2 %}
+                    DEFECTUOSO
+                {% elif datos.estado == 3 %}
+                    REPORTADO
+                {% elif datos.estado == 4 %}
+                    EN REPARACION
+                {% else %}
+                    Estado desconocido
+                {% endif %}
+            </td>
+            <td>
+                <a href="/edita/{{datos.idEQUIPAMIENTO}}" title="Editar elemento">
+                    <i class='fas fa-pen' style='font-size:24px'></i></a>
+            </td>
+            <td>
+                <a href="/eliminar/{{datos.idEQUIPAMIENTO}}" title="Eliminar elemento">
+                    <i class='fas fa-trash' style='font-size:24px'></i></a>
+                <a href="/centro" title="Regresar">
+                    <i class='far fa-arrow-alt-circle-left' style='font-size:24px'></i></a>
             </td>
         </tr>
         {% endfor %}
     </table>
 </div>
-
 
 {% endblock %}

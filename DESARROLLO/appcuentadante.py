@@ -18,6 +18,230 @@ import os
 from flask_mail import Mail, Message
 mail = Mail()
 
+def create_app():
+    app=Flask(__name__)
+    CORS(app)
+    app.config.from_mapping(
+        SECRET_KEY='AWFSDGF134VDS'
+    )
+
+    mail.init_app(app)
+       
+    return app
+app = create_app() # CREATE THE FLASK APP
+app.ruta="http://127.0.0.1:8000"
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+class Login(UserMixin):
+    def __init__(self, data):
+        self.email = data['email']
+        self.idUSUARIO = data['idUSUARIO']
+        self.nombre = data['nombre']
+        self.password = data['password']
+        self.rol = data['rol']
+
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.idUSUARIO)
+
+class Usuario:
+    
+    res=None
+    data=None
+    def __init__(self):
+        self.url=app.ruta
+        print("---->",app.ruta)
+
+
+    def ListarTodos(self,clave="/ln"):
+        self.res=requests.get(self.url+clave)
+        data1=json.loads(self.res.content)
+        return data1
+    
+    def ListarUno_a(self,cual):    
+        self.res=requests.get(self.url+"/ppa/"+str(cual))
+        data1=json.loads(self.res.content)
+        if data1!=[]:
+            return(data1)
+        else:
+            return False  
+    def ListarJson(self,clave):    
+        self.res=requests.get(self.url+clave)
+        data1=json.loads(self.res.content)
+        if data1!=[]:
+            return(data1)
+        else:
+            return False  
+        
+    def Consultlogin(self, dat, clave="/apilogin/"):
+        try:
+            self.res = requests.get(self.url + clave + dat)
+            if self.res.status_code == 200:
+                try:
+                    data1 = json.loads(self.res.content)
+                    return data1
+                except json.JSONDecodeError:
+                    print("Error decoding JSON, response is not valid JSON.")
+                    return None
+            else:
+                print(f"Error: Received status code {self.res.status_code}")
+                return None
+        except requests.RequestException as e:
+            print(f"Request failed: {e}")
+            return None
+        
+    def ambientes(self, clave="/ambi"):
+        self.res = requests.get(self.url + clave)
+        data1 = json.loads(self.res.content)
+        return data1
+    
+    def ambientesss(self, clave="/ambis"):
+        self.res = requests.get(self.url + clave, timeout=5)
+        data1 = json.loads(self.res.content)
+        return data1
+    
+    def elem(self,clave="/tipoElementos"):
+        self.res = requests.get(self.url+clave, timeout=5)
+        data1 = json.loads(self.res.content)
+        return data1
+    
+    def allEle(self,clave="/allEle"):
+        self.res = requests.get(self.url+clave)
+        data = json.loads(self.res.content)
+        return data
+    
+    def ConsultAmbi(self, dat, e, n, clave="/elem/"):
+        extend= f"{dat}/{e}/{n}"
+        self.res=requests.get(self.url+clave+extend)
+        data1=json.loads(self.res.content)
+        print('se ejecuto correctamente')
+        print(data1)
+        return data1
+    def ConNovel(self, dat, clave="/items/"):
+        self.res=requests.get(self.url+clave+dat)
+        data1=json.loads(self.res.content)
+        return data1
+
+    def AsignarAmbiente(self, data, clave="/actualizar"):
+        self.res = requests.put(self.url + clave, json=data)
+        print(f"Response Status Code: {self.res.status_code}")
+        print("Response Content:", self.res.content)
+
+        if self.res.status_code == 200:
+            try:
+                return json.loads(self.res.content)
+            except json.JSONDecodeError:
+                print("Error decoding JSON, response content:", self.res.content)
+                return None
+        else:
+            print(f"Error: Received status code {self.res.status_code}")
+            return None
+
+
+    # va al api 8000:/i/.. dependiendo lo que traiga clave
+    def Inserte(self, dat, clave="/i"):
+        self.res = requests.post(self.url + clave, json=dat)
+        
+        if self.res.status_code == 200:
+            try:
+                return json.loads(self.res.content).get('id')
+            except json.JSONDecodeError:
+                print("Error decoding JSON, response content:", self.res.content)
+                return None
+        else:
+            print(f"An error occurred: {self.res.text}")
+            return None
+        
+
+    def InserteElementos(self, dat):
+        response = requests.post(self.url+"/i/e", json=dat)
+
+
+    def Borra(self,cual,clave):
+        response = requests.delete(self.url+clave+str(cual))
+    def Actualiza(self,data,clave="/u"):
+        response = requests.put(self.url+clave, json=data)
+    #codigo david
+    def espera(self, x):
+        
+        print('passaron dos segundos')
+        time.sleep(3)
+        return 'valimos verga'       
+    
+    def novedada(self, clave="/novedadesA"):
+        self.res = requests.get(self.url + clave)
+        data = json.loads(self.res.content)
+        return data
+    
+    
+@app.route("/ambi")
+def ambi():
+    # Query for environments with NULL IDCUENTADANTE
+    sql = "SELECT * FROM AMBIENTE WHERE IDCUENTADANTE IS NULL"
+    u1 = Usuario(app.bd)
+    todo = u1.ConsultarJson(sql)
+    return jsonify(todo)  # Return JSON data
+
+@app.route("/register", methods=['POST', 'GET'])
+def register():
+    u = Usuario()
+    a = u.ambientes()  # Fetch environments where IDCUENTADANTE is NULL
+    accountant = 2  # Default role for new users
+
+    if request.method == 'POST':
+        nombre = request.form["nombre"]
+        rol = accountant  # Default role
+        cedula = request.form["cedula"]
+        email = request.form["email"]
+        password = request.form["password"]
+        id_ambiente = request.form["ambiente"]
+
+        if not email or not password:
+            flash("Faltan datos")
+            return redirect(url_for("register"))
+
+        user_data = {
+            "nombre": nombre,
+            "rol": rol,
+            "cedula": cedula,
+            "email": email,
+            "password": password
+        }
+
+        u1 = Usuario()
+        existing_user = u1.Consultlogin(email)
+        if existing_user is None:
+            user_id = u1.Inserte(user_data)
+            if user_id is not None:
+                flash("Usuario registrado correctamente")
+
+                if id_ambiente:
+                    data_to_assign = {
+                        "user_id": user_id,
+                        "ambiente_id": id_ambiente
+                    }
+                    result = u1.AsignarAmbiente(data_to_assign)
+                    if result is None:
+                        flash("Error assigning the environment.")
+            else:
+                flash("Error inserting the user.")
+        else:
+            flash("El usuario ya existe con ese correo electrónico.")
+    
+    return render_template("register.html", a=a, accountant=accountant)
+
 
 def create_app():
     app=Flask(__name__)
@@ -190,47 +414,50 @@ class Usuario:
         
 @app.route("/register", methods=['POST', 'GET'])
 def register():
-    u = Usuario()
-    a = u.ambientes()
+        u = Usuario()
+        a = u.ambientes()
+        accountant = 2
 
-    if request.method == 'POST':
-        nombre = request.form["nombre"]
-        rol = request.form["rol"]
-        email = request.form["email"]
-        password = request.form["password"]
-        id_ambiente = request.form["ambiente"]
+        if request.method == 'POST':
+            nombre = request.form["nombre"]
+            rol = accountant
+            cedula = request.form["cedula"]
+            email = request.form["email"]
+            password = request.form["password"]
+            id_ambiente = request.form["ambiente"]
 
-        if not email or not password:
-            mensaje = "Faltan datos"
-            flash(mensaje)
-            return redirect(url_for("register"))
-
-        user_data = {
-            "nombre": nombre,
-            "rol": rol,
-            "email": email,
-            "password": password
-        }
-
-        u1 = Usuario()
-        existing_user = u1.Consultlogin(email)
-        if existing_user is None:
-            user_id = u1.Inserte(user_data)
-            if user_id is not None:
-                mensaje = "Usuario registrado correctamente"
+            if not email or not password:
+                mensaje = "Faltan datos"
                 flash(mensaje)
+                return redirect(url_for("register"))
 
-                if id_ambiente:
-                    data_to_assign = {
-                        "user_id": user_id,
-                        "ambiente_id": id_ambiente
-                    }
-                    result = u1.AsignarAmbiente(data_to_assign)
-                    if result is None:
-                        flash("Error assigning the environment.")
-            else:
-                flash("Error inserting the user.")
-    return render_template("register.html", a=a)
+            user_data = {
+                "nombre": nombre,
+                "rol": rol,
+                "cedula": cedula,
+                "email": email,
+                "password": password
+            }
+
+            u1 = Usuario()
+            existing_user = u1.Consultlogin(email)
+            if existing_user is None:
+                user_id = u1.Inserte(user_data)
+                if user_id is not None:
+                    mensaje = "Usuario registrado correctamente"
+                    flash(mensaje)
+
+                    if id_ambiente:
+                        data_to_assign = {
+                            "user_id": user_id,
+                            "ambiente_id": id_ambiente
+                        }
+                        result = u1.AsignarAmbiente(data_to_assign)
+                        if result is None:
+                            flash("Error assigning the environment.")
+                else:
+                    flash("Error inserting the user.")
+        return render_template("register.html", a=a,accountant=accountant)
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -267,9 +494,6 @@ def login():
 
 
 
-
-
-
 #Asignacion de ambientes
 @app.route("/asignacion", methods=['GET', 'POST'])
 def asignacion():
@@ -297,10 +521,27 @@ def dirigir():
         
 @app.route("/nuevo_elemento", methods=['GET', 'POST'])
 def nuevo_elemento():
-    u1=Usuario()
-    am = u1.ambientesss()
-    e =u1.elem()
-    return render_template("nuevo_elemento.html",am=am,e=e)
+    u1 = Usuario()
+    current_classroom = None
+    if current_user.is_authenticated:
+        try:
+            response = requests.get(f"http://127.0.0.1:8000/ambippp/{current_user.idUSUARIO}")
+            if response.status_code == 200:
+                lulo = response.json()
+                
+                if lulo:  # Check if there is at least one classroom in the response
+                    current_classroom = lulo[0]["idAMBIENTE"]  # Get the first classroom's idAMBIENTE
+                
+                e = u1.elem()
+                return render_template("nuevo_elemento.html", 
+                                       e=e,
+                                       current_classroom=current_classroom)
+            else:
+                flash("Failed to load classroom data.")
+        except requests.exceptions.RequestException as e:
+            flash(f"Error fetching data: {e}")
+    
+    return render_template("nuevo_elemento.html", current_classroom=current_classroom)
 
 
 @app.route("/home")
@@ -410,7 +651,7 @@ def equipamiento2():
         return render_template("equipamiento.html",msg=msg,elementos=elementos)
 
 
-@app.route("/carga_masiva", methods=['GET', 'POST'])
+@app.route("/carga_masiva", methods=["GET", "POST"])
 @login_required
 def carga_masiva():
     return render_template("carga_masiva.html")
@@ -423,6 +664,37 @@ def respuestanov(nov):
     cadena=u1.ListarJson("/n/"+nov)
     msg=" RESPUESTA A NOVEDAD"
     return render_template("novprocesa.html",cadena=cadena,msg=msg)
+
+
+@app.route("/edita/<ele>")
+@login_required
+def editaEle(ele):
+    u1 = Usuario()
+    cadena=u1.ListarJson("/editEle/"+ele)
+    msg="EDITANDO ELEMENTO"
+    return render_template("editaElemento.html",cadena=cadena,msg=msg)
+
+
+#upding my element
+@app.route("/u/<ele>", methods = ['PUT'])
+@login_required
+def uEle(ele):
+    id = request.form.get("idEQUIPAMIENTO")
+    idAmbi = request.form.get("idAMBIENTE")
+    idTIPOELEMENTO = request.form.get("idTIPOELEMENTO")
+    nombre = request.form.get("nombre")
+    estado = request.form.get("estado")
+    serial = request.form.get("serial")
+    estacion = request.form.get("estacion")
+
+
+@app.route("/eliminar/<ele>")
+@login_required
+def deleteEle(ele):
+    e = Usuario()
+    data = e.ListarJson(f"/deleteEle/{ele}")
+    msg = ""
+
 
 @app.route("/n/i",methods=['POST'])
 @login_required
@@ -487,39 +759,39 @@ def aprendiz():
     return render_template("estudiante.html", elementos=filtered_data)
 
 
-@app.route("/web/email", methods=["GET", "POST"])
-def email():
-    if request.method == "POST":
-        descripcion = request.form.get("descripcion", "").strip()
-        respuesta = request.form.get("respuesta", "").strip()
+# @app.route("/web/email", methods=["GET", "POST"])
+# def email():
+#     if request.method == "POST":
+#         descripcion = request.form.get("descripcion", "").strip()
+#         respuesta = request.form.get("respuesta", "").strip()
 
-        if not descripcion or not respuesta:
-            return "Faltan datos en el formulario", 400
+#         if not descripcion or not respuesta:
+#             return "Faltan datos en el formulario", 400
 
-        try:
-            servidor = smtplib.SMTP("smtp.gmail.com", 587)
-            servidor.starttls()
-            servidor.login("davisanquevedovan@gmail.com", "LAZV FYJD OTSN RCWL")
+#         try:
+#             servidor = smtplib.SMTP("smtp.gmail.com", 587)
+#             servidor.starttls()
+#             servidor.login("davisanquevedovan@gmail.com", "LAZV FYJD OTSN RCWL")
 
-            msg = MIMEMultipart()
-            contenido = f"{descripcion}\n\n{respuesta}"  
-            msg.attach(MIMEText(contenido,'plain'))
-            msg["From"] = "davisanquevedovan@gmail.com"
-            msg["To"] = "davisanquevedovan@gmail.com"  # Tu dirección de correo
-            msg["Subject"] = " Novedad " 
+#             msg = MIMEMultipart()
+#             contenido = f"{descripcion}\n\n{respuesta}"  
+#             msg.attach(MIMEText(contenido,'plain'))
+#             msg["From"] = "davisanquevedovan@gmail.com"
+#             msg["To"] = "davisanquevedovan@gmail.com"  # Tu dirección de correo
+#             msg["Subject"] = " Novedad " 
 
-            servidor.sendmail("davisanquevedovan@gmail.com", "davisanquevedovan@gmail.com", msg.as_string())
-            servidor.quit()
+#             servidor.sendmail("davisanquevedovan@gmail.com", "davisanquevedovan@gmail.com", msg.as_string())
+#             servidor.quit()
 
-            return "Correo enviado correctamente"
-        except Exception as e:
-            return f"Error al enviar el correo: {str(e)}", 500
-    else:
-        # Aquí debes pasar los datos necesarios para renderizar el formulario
-        cadena = [
-            {"FECHA": "2023-10-01", "DESCRIPCION": "Descripción de ejemplo"}
-        ]
-        return render_template("novprocesa.html")
+#             return "Correo enviado correctamente"
+#         except Exception as e:
+#             return f"Error al enviar el correo: {str(e)}", 500
+#     else:
+#         # Aquí debes pasar los datos necesarios para renderizar el formulario
+#         cadena = [
+#             {"FECHA": "2023-10-01", "DESCRIPCION": "Descripción de ejemplo"}
+#         ]
+#         return render_template("novprocesa.html")
     
 
 @login_manager.user_loader
