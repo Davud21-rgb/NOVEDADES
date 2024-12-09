@@ -57,12 +57,10 @@ class Login(UserMixin):
         return str(self.idUSUARIO)
 
 class Usuario:
-    
     res=None
     data=None
-    def __init__(self):
-        self.url=app.ruta
-        print("---->",app.ruta)
+    def __init__(self,murl='http://127.0.0.1:8000'):
+        self.url=murl
 
 
     def ListarTodos(self,clave="/ln"):
@@ -169,10 +167,18 @@ class Usuario:
         response = requests.post(self.url+"/i/e", json=dat)
 
 
-    def Borra(self,cual,clave):
-        response = requests.delete(self.url+clave+str(cual))
-    def Actualiza(self,data,clave="/u"):
-        response = requests.put(self.url+clave, json=data)
+    def Borra(self,cual):
+        response = requests.delete(self.url+"/d/"+str(cual))
+        
+    # def Actualiza(self, data):
+    #     # Send a PUT request to the API with the data as JSON
+    #     response = requests.put(f"{self.url}/u", json=data)
+
+        # Check if the response is successful
+        if response.status_code == 200:
+            return response.json()  # Return the response as JSON if successful
+        else:
+            return {"error": "Failed to update element"}  # Return error message
     #codigo david
     def espera(self, x):
         
@@ -285,9 +291,8 @@ class Usuario:
     
     res=None
     data=None
-    def __init__(self):
-        self.url=app.ruta
-        print("---->",app.ruta)
+    def __init__(self, murl='http://127.0.0.1:8000'):
+        self.url = murl
 
 
     def ListarTodos(self,clave="/ln"):
@@ -394,10 +399,24 @@ class Usuario:
         response = requests.post(self.url+"/i/e", json=dat)
 
 
-    def Borra(self,cual,clave):
-        response = requests.delete(self.url+clave+str(cual))
-    def Actualiza(self,data,clave="/u"):
-        response = requests.put(self.url+clave, json=data)
+    def Borra(self, id):
+        # Send a DELETE request to the API to delete the element
+        response = requests.delete(f"{self.url}/deleteEle/{id}")
+        if response.status_code == 200:
+            return 'OK'
+        else:
+            return 'Error'
+
+
+
+    def Actualiza(self, data):
+        response = requests.put(self.url, json=data)  # Use PUT method
+        if response.status_code == 200:
+            return response.json()  # Return JSON data if successful
+        else:
+            return {"error": "Failed to update element"}
+        
+
     #codigo david
     def espera(self, x):
         
@@ -666,34 +685,60 @@ def respuestanov(nov):
     return render_template("novprocesa.html",cadena=cadena,msg=msg)
 
 
-@app.route("/edita/<ele>")
-@login_required
-def editaEle(ele):
-    u1 = Usuario()
-    cadena=u1.ListarJson("/editEle/"+ele)
-    msg="EDITANDO ELEMENTO"
-    return render_template("editaElemento.html",cadena=cadena,msg=msg)
-
-
 #upding my element
-@app.route("/u/<ele>", methods = ['PUT'])
+@app.route("/u", methods=['POST'])
 @login_required
-def uEle(ele):
+def actualizaElemento():
+    # Collect form data
     id = request.form.get("idEQUIPAMIENTO")
     idAmbi = request.form.get("idAMBIENTE")
     idTIPOELEMENTO = request.form.get("idTIPOELEMENTO")
-    nombre = request.form.get("nombre")
     estado = request.form.get("estado")
     serial = request.form.get("serial")
     estacion = request.form.get("estacion")
+    observacion = None
+
+    data = {
+        "idEQUIPAMIENTO": id,
+        "idAMBIENTE": idAmbi,
+        "idTIPOELEMENTO": idTIPOELEMENTO,
+        "estado": estado,
+        "serial": serial,
+        "estacion": estacion,
+        "observacion": observacion
+    }
+
+    u1 = Usuario("http://127.0.0.1:8000/update")
+    response = u1.Actualiza(data)
+
+    if response.get("message") == "Element edited successfully":
+        msg = "ELEMENTO EDITADO CORRECTAMENTE"
+        status_code = 200
+    else:
+        msg = "Error al editar el elemento"
+        status_code = 500
+
+    return render_template("alertas.html", msgito=msg, regreso="/ele"), status_code
 
 
-@app.route("/eliminar/<ele>")
+
+@app.route("/elemento/<ele>", methods=['GET','post'])
 @login_required
-def deleteEle(ele):
-    e = Usuario()
-    data = e.ListarJson(f"/deleteEle/{ele}")
-    msg = ""
+def editaEle(ele):
+    u1 = Usuario()
+    cadena = u1.ListarJson("/editEle/" + ele)
+    e = requests.get("http://127.0.0.1:8000/tipoElementos").json()
+    msg = "EDITANDO ELEMENTO"
+    return render_template("editaElemento.html", cadena=cadena, msg=msg, e=e)
+
+
+@app.route("/d/<id>", methods=['GET'])
+@login_required
+def deleteEle(id):
+    e = Usuario("http://127.0.0.1:8000")
+    e.Borra(id)
+    msg = "ELEMENTO ELIMINADO CORRECTAMENTE"
+    return render_template("alertas.html", msgito=msg, regreso="/ele")
 
 
 @app.route("/n/i",methods=['POST'])

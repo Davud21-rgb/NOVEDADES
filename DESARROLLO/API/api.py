@@ -197,36 +197,18 @@ def equipamiento(amb):
 def allEle(idUSER):
     sql = f"""
     SELECT DISTINCT
-    equi.idEQUIPAMIENTO,
-    equi.idAMBIENTE,
-    equi.idTIPOELEMENTO as idTIPOELEMENTO,
-    equi.ESTADO as estado,
-    equi.SERIAL as serial,
-    equi.ESTACION as estacion
+        equi.idEQUIPAMIENTO,
+        equi.idAMBIENTE,
+        equi.idTIPOELEMENTO as idTIPOELEMENTO,
+        te.nomtipo as nomtipo,
+        equi.ESTADO as estado,
+        equi.SERIAL as serial,
+        equi.ESTACION as estacion
     FROM EQUIPAMIENTO equi
     JOIN AMBIENTE a ON equi.idAMBIENTE = a.idAMBIENTE
+    JOIN TIPOELEMENTO te ON equi.idTIPOELEMENTO = te.idTIPOELEMENTO
     WHERE a.idCUENTADANTE = {idUSER};
     """
-    u1 = Usuario(app.bd)
-    todo = u1.ConsultarJson(sql)
-    
-    # Ensure the result is a valid JSON response
-    if todo is None:
-        return jsonify({"error": "No data found"}), 404
-    
-    return jsonify(todo)
-
-#getting one element to edit
-@app.route("/editEle/<ele>", methods = ['GET'])
-def allEle2(ele):
-    sql = f"""    
-    SELECT DISTINCT
-    idEQUIPAMIENTO,
-    idAMBIENTE,
-    idTIPOELEMENTO as tipo,
-    ESTADO as estado,
-    SERIAL as serial,
-    ESTACION as estacion FROM equipamiento equi WHERE idEQUIPAMIENTO = {ele}"""
     u1 = Usuario(app.bd)
     todo = u1.ConsultarJson(sql)
     
@@ -235,26 +217,69 @@ def allEle2(ele):
     
     return jsonify(todo)
 
+#getting one element to edit
+@app.route("/editEle/<ele>", methods=['GET'])
+def allEle2(ele):
+    sql = f"""
+    SELECT DISTINCT
+        equi.idEQUIPAMIENTO,
+        equi.idAMBIENTE,
+        equi.idTIPOELEMENTO as tipo,
+        te.nomtipo as nomtipo,
+        equi.ESTADO as estado,
+        equi.SERIAL as serial,
+        equi.ESTACION as estacion
+    FROM equipamiento equi
+    JOIN TIPOELEMENTO te ON equi.idTIPOELEMENTO = te.idTIPOELEMENTO
+    WHERE equi.idEQUIPAMIENTO = {ele}
+    """
+    u1 = Usuario(app.bd)
+    todo = u1.ConsultarJson(sql)
+    
+    if not todo:
+        return jsonify({"error": "No data found for the given ID"}), 404
+    
+    return jsonify(todo)
+
+
 #EDIT THE ELEMENT
-# @app.route("/elemento/u", methods = ['PUT'])
-# def EditaElemento():
-#     datos = request.get_json()
-#     id = datos['idEQUIPAMIENTO']
-#     idAMBIENTE = datos['idAMBIENTE']
-#     idTIPOELEMENTO = datos['idTIPOELEMENTO']
-#     NOMBRE = datos['nombre']
-#     ESTADO = datos['estado']
-#     SERIAL = datos['serial']
-#     ESTACION = datos['estacion']
-#     OBSERVACION = datos['observacion']
-#     sql = "UPDATE EQUIPAMIENTO SET nombrePT = '"+nombrePT+"' WHERE idPuestoTrabajo = "+str(id)
-#     try:
-#         con = sqlite3.connect("novedades.db")
-#         todo = con.Ejecutar("novedades.db", sql)
-#         return "OK"
-#     except Exception as e:
-#         print("An error occurred:", str(e))
-#         return "Error: Internal Server Error"
+@app.route("/update", methods=['PUT'])
+def EditaElemento():
+    datos = request.get_json()
+    id = datos['idEQUIPAMIENTO']
+    idAmbi = datos['idAMBIENTE']
+    idTIPOELE = datos['idTIPOELEMENTO']
+    estado = datos['estado']
+    serial = datos['serial']
+    estacion = datos['estacion']
+    observacion = None 
+    
+    sql = """
+    UPDATE EQUIPAMIENTO
+    SET 
+        idTIPOELEMENTO = ?,
+        idAMBIENTE = ?,
+        estado = ?,
+        serial = ?,
+        estacion = ?,
+        observacion = ?
+    WHERE idEQUIPAMIENTO = ?
+    """
+    
+    con = sqlite3.connect("novedades.db")
+    cursor = con.cursor()
+
+    try:
+        cursor.execute(sql, (idTIPOELE, idAmbi, estado, serial, estacion, observacion, id))
+        con.commit()
+        return jsonify({"message": "Element edited successfully"}), 200
+    except sqlite3.Error as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        con.close()
+
+
+
 
 @app.route("/allEle")
 def allElle():
@@ -426,7 +451,6 @@ def InsertEqui():
     return "Insert successful"
 
 
-
 @app.route("/massive/load", methods=["POST","GET"])
 def massive_load():
     file = request.files.get('myfile')
@@ -438,7 +462,7 @@ def massive_load():
         for _, row in df.iterrows():
                     cursor.execute("""
                         INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, ESTADO, SERIAL, ESTACION, OBSERVACION)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?)
                     """, (
                         row['idAMBIENTE'],
                         row['idTIPOELEMENTO'],
@@ -605,6 +629,17 @@ def deleteAll():
     con.commit()
     con.close()
     return(sql)
+
+
+@app.route("/deleteEle/<id>", methods = ['DELETE'])
+def DeleteEle(id):
+    sql = "DELETE FROM EQUIPAMIENTO WHERE idEQUIPAMIENTO="+id
+    con = sqlite3.connect("novedades.db")
+    cursor = con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()
+    return 'OK'
 
     
   

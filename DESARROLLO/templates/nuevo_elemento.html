@@ -5,32 +5,33 @@
 {% endblock %}
 
 {% block content %}
-  <div class="login-page">
-    <div class="form">
+  <div>
       <h2 class="caret-sombra-red">NUEVO ELEMENTO AMBIENTE DE FORMACION EN CUENTADANCIA</h2>
-      <form method="POST" class="form-ele">
-          <div class="nuevo_ele">
+      <br><br>
+      <div class="general">
+      <form method="POST">
+          <div>
             <input type="hidden" name="idAMBIENTE" value="{{ current_classroom }}">
           </div>
-          <div class="nuevo_ele">
+          <div>
             <label for="serial" class="form-label">Serial</label>
-            <input type="text" name="serial" class="form-control" id="serial">
+            <input type="text" name="serial" id="serial">
           </div>
-          <div class="nuevo_ele">
+          <div>
             <label for="estacion" class="form-label">Estación</label>
-            <input type="number" name="estacion" class="form-control" id="estacion">
+            <input type="number" name="estacion" id="estacion">
           </div>
-          <div class="nuevo_ele">
-            <label for="idTIPOELEMENTO" class="form-label">Tipo de Elemento</label>
-            <select class="form-control" id="idTIPOELEMENTO" name="idTIPOELEMENTO">
+          <div>
+            <label for="idTIPOELEMENTO">Tipo de Elemento</label>
+            <select id="idTIPOELEMENTO" name="idTIPOELEMENTO">
                 {% for data1 in e %}
                     <option value="{{ data1.idTIPOELEMENTO }}">{{ data1.NOMTIPO }}</option>
                 {% endfor %}
             </select>
         </div>
-          <div class="nuevo_ele">
-            <label for="estado" class="form-label">Estado</label>
-            <select class="form-control" id="estado" name="estado">
+          <div>
+            <label for="estado">Estado</label>
+            <select id="estado" name="estado">
               <option value=1>BUENO</option>
               <option value=2>DEFECTUOSO</option>
               <option value=3>REPORTADO</option>

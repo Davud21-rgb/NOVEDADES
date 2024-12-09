@@ -17,7 +17,7 @@
         <tr>
             <td>{{ datos.estacion }}</td>
             <td>{{ datos.serial }}</td>
-            <td>{{ datos.idTIPOELEMENTO }}</td>
+            <td>{{ datos.nomtipo }}</td>
             <td>
                 {% if datos.estado == 1 %}
                     Bueno
@@ -32,11 +32,11 @@
                 {% endif %}
             </td>
             <td>
-                <a href="/edita/{{datos.idEQUIPAMIENTO}}" title="Editar elemento">
+                <a href="/elemento/{{datos.idEQUIPAMIENTO}}" title="Editar elemento">
                     <i class='fas fa-pen' style='font-size:24px'></i></a>
             </td>
             <td>
-                <a href="/eliminar/{{datos.idEQUIPAMIENTO}}" title="Eliminar elemento">
+                <a href="/d/{{datos.idEQUIPAMIENTO}}" title="Eliminar elemento">
                     <i class='fas fa-trash' style='font-size:24px'></i></a>
                 <a href="/centro" title="Regresar">
                     <i class='far fa-arrow-alt-circle-left' style='font-size:24px'></i></a>

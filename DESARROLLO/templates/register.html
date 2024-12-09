@@ -5,14 +5,13 @@
 {%endblock%}
 
 {% block content %}
-  <div class="login-page">
     <h2 class="caret-sombra-red">CUENTADANTE DEL AMBIENTE VIRTUAL</h3>
-    <div class="form">
       <h4 class="caret-sombra-red">Datos personales</h2>
+        <div class="general2">
       <form method="POST">
         <div class="mb-3">
           <label for="nombr" class="form-label">Nombre y apellidos</label>
-          <input type="text" class="form-control" id="nombre" aria-describedby="nombre" name="nombre">
+          <input type="text" id="nombre" aria-describedby="nombre" name="nombre">
           <div id="nombre" class="form-text"></div>
         </div>
         <div class="nuevo_ele">
@@ -20,21 +19,21 @@
         </div>
         <div class="mb-3">
           <label for="cedula" class="form-label">Cédula</label>
-          <input type="number" class="form-control" id="cedula" aria-describedby="cedula" name="cedula">
+          <input type="number" id="cedula" aria-describedby="cedula" name="cedula">
           <div id="cedula" class="form-text"></div>
         </div>
           <div class="mb-3">
             <label for="email" class="form-label">Correo Electronico</label>
-            <input type="text" class="form-control" id="email" aria-describedby="email" name="email">
+            <input type="text" id="email" aria-describedby="email" name="email">
             <div id="email" class="form-text"></div>
           </div>
           <div class="mb-3">
             <label for="exampleInputPassword1" class="form-label">Contraseña</label>
-            <input type="password" class="form-control" id="exampleInputPassword1" name="password">
+            <input type="password" id="exampleInputPassword1" name="password">
           </div>
           <div class="mb-3">
             <label for="ambiente" class="form-label">Ambiente</label>
-            <select class="form-select" name="ambiente" id="idAMBIENTE" required>
+            <select  name="ambiente" id="idAMBIENTE" required>
               <option selected disabled>Asigne un ambiente</option>
               {% for ambiente in a %}
                 <option value="{{ ambiente.idAMBIENTE }}">{{ ambiente.nombre }}</option>
