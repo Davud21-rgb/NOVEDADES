@@ -537,6 +537,13 @@ def dirigir():
     else:
         return redirect(url_for("inicio"))
     
+    
+@app.route("/alertas")
+def show_alerta():
+    msgito = request.args.get('msgito')  # Get the message from query parameters
+    regreso = request.args.get('regreso')  # Get the redirect URL from query parameters
+    return render_template('alertas.html', msgito=msgito, regreso=regreso)
+
         
 @app.route("/nuevo_elemento", methods=['GET', 'POST'])
 def nuevo_elemento():
@@ -590,10 +597,10 @@ def menu():
         return redirect(url_for('login'))
 
     
-# @app.route("/delete")
-# def d():
-#     dele = requests.delete("http://127.0.0.1:8000/delete/novedades")
-#     return render_template("menu.html", dele=dele)
+@app.route("/delete")
+def d():
+    dele = requests.delete("http://127.0.0.1:8000/delete/equipamiento")
+    return render_template("menu.html", dele=dele)
 
 @app.route("/banner")
 def banner():
@@ -664,10 +671,17 @@ def resumen2():
 @login_required
 def equipamiento2():
     if current_user.is_authenticated:
-        elementos=requests.get(f"http://127.0.0.1:8000/allElements/{current_user.idUSUARIO}").json()
-        print (elementos)
-        msg=" ELEMENTOS DEL AMBIENTE DE FORMACION EN CUENTADANCIA"
-        return render_template("equipamiento.html",msg=msg,elementos=elementos)
+        response = requests.get(f"http://127.0.0.1:8000/allElements/{current_user.idUSUARIO}").json()
+        
+        # Check if response contains an error
+        if "error" in response:
+            elementos = []  # No data found
+        else:
+            elementos = response  # Pass the valid data
+        
+        msg = "ELEMENTOS DEL AMBIENTE DE FORMACION EN CUENTADANCIA"
+        return render_template("equipamiento.html", msg=msg, elementos=elementos)
+
 
 
 @app.route("/carga_masiva", methods=["GET", "POST"])

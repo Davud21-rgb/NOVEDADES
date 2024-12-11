@@ -17,8 +17,7 @@ newElement.addEventListener("click", (event) => {
         return response.text(); // Or `response.json()` if the server sends JSON
     })
     .then(data => {
-        alert("Insert successful"); // Show a success message
-        console.log(data); // Log server response for debugging
+        window.location.href = "/alertas"; // Redirect to the alertas page after insert
     })
     .catch(error => {
         console.error("There was an error with the submission:", error);

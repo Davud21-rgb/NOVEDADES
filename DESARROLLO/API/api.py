@@ -9,6 +9,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import os
+
 from datetime import datetime
 
 from sqlalchemy import null
@@ -442,13 +444,12 @@ def InsertEqui():
         cursor.execute(sql, (idAMBIENTE, idTIPOELEMENTO, estado, serial, estacion, observacion))
         con.commit()
         print("Insert successful")
+
     except sqlite3.OperationalError as e:
         print("Database error:", e)
-        return "Database error", 500
-    finally:
-        con.close()  # Ensure connection is closed
 
-    return "Insert successful"
+    finally:
+        con.close()
 
 
 @app.route("/massive/load", methods=["POST","GET"])
@@ -486,8 +487,8 @@ from flask import request, jsonify
 # Function to send the email
 def send_email(to_email, subject, body):
     try:
-        sender_email = "" #Mi email
-        sender_password = "" #Mi contraseña de las apps de Google
+        sender_email = "davisanquevedovan@gmail.com" #Mi email
+        sender_password = "jlpo dzqk cupf vbrj" #Mi contraseña de las apps de Google
         smtp_server = "smtp.gmail.com" #Gmail
         smtp_port = 587 #Puerto de Gmail
 
@@ -512,13 +513,13 @@ def send_email(to_email, subject, body):
 
 
 #INSERTAR UNA NOVEDAD POR CONSOLA
-@app.route("/newNovelty", methods=['POST'])
+@app.route("/newNovelty", methods=['POST','GET'])
 def newNovelty():
-    idNovedades = 52
+    idNovedades = 34
     idAMBIENTE = 3
     current_date = datetime.now()
     current_date_without_ms = current_date.replace(microsecond=0)
-    DESCRIPCION = 'prueba con correo 3'
+    DESCRIPCION = 'PRUEBA NUMERO UNO'
     ESTADO = 0
     PADRE = None
 
@@ -623,6 +624,17 @@ def novProceso():
 @app.route("/delete/novedades", methods=['DELETE'])
 def deleteAll():
     sql = "DELETE FROM NOVEDADES"
+    con=sqlite3.connect("novedades.db")  
+    cursor=con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()
+    return(sql)
+
+
+@app.route("/delete/equipamiento", methods = ['DELETE'])
+def deleteAllEqui():
+    sql = "DELETE FROM EQUIPAMIENTO"
     con=sqlite3.connect("novedades.db")  
     cursor=con.cursor()
     cursor.execute(sql)
