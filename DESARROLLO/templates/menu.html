@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html" %}
 {% block content %}
 <div class="w3-margin tabla1">
@@ -74,4 +75,82 @@
   });
 </script>
 
+=======
+{% extends "base.html" %}
+{% block content %}
+<div class="w3-margin tabla1">
+  <center><h3 class="caret-sombra-red">
+    NOVEDADES EN EL AMBIENTE DE FORMACION -CUENTADANTE- 
+    <br>AMBIENTE ASIGNADO: 
+    {% for name in classroom_names %}
+        {{ name }}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+</h3></center>
+
+  <h3>
+    <ul id="myUL">
+      <li><span class="caret">📁 <a href="/centro" target="centro">MENÚ PRINCIPAL</a></span>
+        <ul class="nested">
+          <li><span class="caret">&#10133; NOVEDADES</span>
+            <ul class="nested">
+              <li><i class='far  fa-window-restore'></i>
+                <a href="/novedada" target=centro>ABIERTAS</a>
+              </li>
+              <li><i class='far fa-window-restore'></i>
+                <a href="/novedadp" target=centro>EN PROCESO</a>
+              </li>
+              <li><i class='far  fa-window-restore'></i>
+                <a href="/novedadc" target=centro>CERRADA</a>
+              </li>
+              <li>
+                <a href="/delete" target="centro">DELETE ALL</a>
+              </li>
+            </ul>
+          </li>
+          <li><span class="caret">&#10133; EQUIPAMIENTO</span>
+            <ul class="nested">
+              <!-- <li><i class='far fa-window-maximize'></i> <a href="/r/1" target=centro>RESUMEN DEL AMBIENTE</a></li> -->
+              <li><i class='far fa-window-maximize'></i> <a href="/ele" target=centro>ELEMENTOS DEL AMBIENTE</a></li>
+              <li><i class='far fa-plus-square'></i> <a href="/nuevo_elemento" target=centro>NUEVO ELEMENTO</a></li>
+            </ul>
+          </li>
+      </li>
+      <li><span class="caret">&#10133; CARGA MASIVA</span>
+        <ul class="nested">
+          <li><i class='fas fa-power-off'></i> <a href="/carga_masiva" target=centro>ELEMENTOS</a></li>
+        </ul>
+      </li>
+
+      <li><span class="caret">&#10133; CONFIGURACION</span>
+        <ul class="nested">
+          <li><i class='fas fa-wrench'></i><a href="/register" target="centro">CUENTADANTE</a></li>
+        </ul>
+      </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    <br>
+    <a id="logout" href="{{ url_for('logout') }}"><input type="button" class="w3-button w3-round w3-green" value="CERRAR SESION"></a>
+</div>
+</div>
+<script>
+  var toggler = document.getElementsByClassName("caret");
+  var i;
+
+  for (i = 0; i < toggler.length; i++) {
+    toggler[i].addEventListener("click", function () {
+      this.parentElement.querySelector(".nested").classList.toggle("active");
+      this.classList.toggle("caret-down");
+    });
+  }
+
+  document.getElementById('logout').addEventListener('click', function(event) {
+    event.preventDefault();  // Prevent default anchor behavior
+    window.top.location.href = "/";  // Reload the top frame
+  });
+</script>
+
+>>>>>>> 9f1feabfb61519029df5a09752a7aab256ef7b25
 {% endblock content %}

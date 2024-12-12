@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html" %}
 {% block content %}
     <h2 class="caret-sombra-red">{{msg}}</h2>
@@ -48,4 +49,51 @@
         {% include 'mensajes.html' %}
         {% endfor %}
         </div>
+=======
+{% extends "base.html" %}
+{% block content %}
+    <h2 class="caret-sombra-red">{{msg}}</h2>
+        {% for dato in cadena %}
+        <br><br>
+        <div class="general">
+        <form method="post", action="/u">
+            <input type="hidden" name="idEQUIPAMIENTO" value="{{ dato.idEQUIPAMIENTO }}">
+            <input type="hidden" name="idAMBIENTE" value="{{ dato.idAMBIENTE }}">
+            <div>
+                <label for="serial" class="form-label">Serial</label>
+                <input type="text" name="serial" value="{{ dato.serial }}" id="serial">
+            </div>
+            <div>
+                <label for="estacion" class="form-label">Estación</label>
+                <input type="number" name="estacion" value="{{ dato.estacion }}" id="estacion">
+            </div>
+            <div>
+                <label for="idTIPOELEMENTO" class="form-label">Tipo de Elemento</label>
+                <select id="idTIPOELEMENTO" name="idTIPOELEMENTO">
+                    {% for data1 in e %}
+                    <option value="{{ data1.idTIPOELEMENTO }}">{{ data1.NOMTIPO }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="estado" class="form-label">Estado</label>
+                <select id="estado" name="estado">
+                    <option value=1>BUENO</option>
+                    <option value=2>DEFECTUOSO</option>
+                    <option value=3>REPORTADO</option>
+                    <option value=4>EN REPARACION</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex gap-2">
+                    <button id="editElement" class="btn btn-outline-success">GUARDAR</button>
+                    <a href="/ele" class="btn btn-outline-danger">Cancelar</a>
+                </div>
+            </div>
+        </form>
+        {% include 'mensajes.html' %}
+        {% endfor %}
+        </div>
+>>>>>>> 9f1feabfb61519029df5a09752a7aab256ef7b25
         {% endblock %}

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html" %} 
 {% block content %}
 <center>
@@ -58,3 +59,64 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ url_for('static', filename='js/deleteEle.js') }}"></script>
 {% endblock %}
+=======
+{% extends "base.html" %} 
+{% block content %}
+<center>
+  <h3 class="caret-sombra-red">{{ msg }}</h3>
+
+  {% if elementos|length > 0 %}
+  <table
+    class="table table-striped table-bordered tabla1"
+    style="width: 90%"
+    border="1"
+  >
+    <tr>
+      <th><b>ESTACION</b></th>
+      <th><b>SERIAL</b></th>
+      <th><b>TIPO</b></th>
+      <th><b>ESTADO</b></th>
+      <th><b>EDITAR</b></th>
+      <th><b>ELIMINAR</b></th>
+    </tr>
+    {% for datos in elementos %}
+    <tr>
+      <td>{{ datos.estacion }}</td>
+      <td>{{ datos.serial }}</td>
+      <td>{{ datos.nomtipo }}</td>
+      <td>
+        {% if datos.estado == 1 %} 
+          Bueno 
+        {% elif datos.estado == 2 %} 
+          DEFECTUOSO
+        {% elif datos.estado == 3 %} 
+          REPORTADO 
+        {% elif datos.estado == 4 %} 
+          EN REPARACION 
+        {% else %} 
+          Estado desconocido 
+        {% endif %}
+      </td>
+      <td>
+        <a href="/elemento/{{ datos.idEQUIPAMIENTO }}" title="Editar elemento">
+          <i class="fas fa-pen" style="font-size: 24px"></i>
+        </a>
+      </td>
+      <td>
+        <a href="/d/{{ datos.idEQUIPAMIENTO }}" title="Eliminar elemento" class="delete-link">
+          <i class="fas fa-trash" style="font-size: 24px"></i>
+        </a>
+        <a href="/centro" title="Regresar">
+          <i class="far fa-arrow-alt-circle-left" style="font-size: 24px"></i>
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <h2>No hay elementos</h2>
+  {% endif %}
+</center>
+<script src="{{ url_for('static', filename='js/deleteEle.js') }}"></script>
+{% endblock %}
+>>>>>>> 9f1feabfb61519029df5a09752a7aab256ef7b25
