@@ -10,15 +10,15 @@ newElement.addEventListener("click", (event) => {
         method: "POST",
         body: formData,
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Network response was not ok " + response.statusText);
-        }
-        return response.text(); // Or `response.json()` if the server sends JSON
-    })
+    .then(response => response.json())  // Parse JSON response
     .then(data => {
-        alert("Insert successful"); // Show a success message
-        console.log(data); // Log server response for debugging
+        if (data.status_code === 200) {
+            // Redirect to alertas with the success message
+            window.location.href = `/alertas?msgito=${encodeURIComponent(data.message)}&regreso=/ele`;
+        } else {
+            // Handle error: redirect to alertas with the error message
+            window.location.href = `/alertas?msgito=${encodeURIComponent(data.message)}&regreso=/ele`;
+        }
     })
     .catch(error => {
         console.error("There was an error with the submission:", error);

@@ -537,6 +537,13 @@ def dirigir():
     else:
         return redirect(url_for("inicio"))
     
+    
+@app.route("/alertas")
+def show_alerta():
+    msgito = request.args.get('msgito')  # Get the message from query parameters
+    regreso = request.args.get('regreso')  # Get the redirect URL from query parameters
+    return render_template('alertas.html', msgito=msgito, regreso=regreso)
+
         
 @app.route("/nuevo_elemento", methods=['GET', 'POST'])
 def nuevo_elemento():
@@ -590,10 +597,10 @@ def menu():
         return redirect(url_for('login'))
 
     
-# @app.route("/delete")
-# def d():
-#     dele = requests.delete("http://127.0.0.1:8000/delete/novedades")
-#     return render_template("menu.html", dele=dele)
+@app.route("/delete")
+def d():
+    dele = requests.delete("http://127.0.0.1:8000/delete/equipamiento")
+    return render_template("menu.html", dele=dele)
 
 @app.route("/banner")
 def banner():
@@ -664,15 +671,29 @@ def resumen2():
 @login_required
 def equipamiento2():
     if current_user.is_authenticated:
-        elementos=requests.get(f"http://127.0.0.1:8000/allElements/{current_user.idUSUARIO}").json()
-        print (elementos)
-        msg=" ELEMENTOS DEL AMBIENTE DE FORMACION EN CUENTADANCIA"
-        return render_template("equipamiento.html",msg=msg,elementos=elementos)
+        response = requests.get(f"http://127.0.0.1:8000/allElements/{current_user.idUSUARIO}").json()
+        
+        # Check if response contains an error
+        if "error" in response:
+            elementos = []  # No data found
+        else:
+            elementos = response  # Pass the valid data
+        
+        msg = "ELEMENTOS DEL AMBIENTE DE FORMACION EN CUENTADANCIA"
+        return render_template("equipamiento.html", msg=msg, elementos=elementos)
+
 
 
 @app.route("/carga_masiva", methods=["GET", "POST"])
 @login_required
 def carga_masiva():
+    if request.method == 'POST':
+        try:
+            return jsonify({"message": "Carga masiva completada exitosamente"}), 200
+        
+        except Exception as e:
+            # If any error occurs, return a failure message
+            return jsonify({"message": f"Error: {str(e)}"}), 500
     return render_template("carga_masiva.html")
 
 
@@ -696,7 +717,7 @@ def actualizaElemento():
     estado = request.form.get("estado")
     serial = request.form.get("serial")
     estacion = request.form.get("estacion")
-    observacion = None
+    observacion = request.form.get("observacion")
 
     data = {
         "idEQUIPAMIENTO": id,
@@ -732,7 +753,7 @@ def editaEle(ele):
     return render_template("editaElemento.html", cadena=cadena, msg=msg, e=e)
 
 
-@app.route("/d/<id>", methods=['GET'])
+@app.route("/d/<id>", methods=['GET','DELETE'])
 @login_required
 def deleteEle(id):
     e = Usuario("http://127.0.0.1:8000")

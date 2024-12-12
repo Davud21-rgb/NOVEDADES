@@ -9,6 +9,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import os
+
 from datetime import datetime
 
 from sqlalchemy import null
@@ -228,7 +230,8 @@ def allEle2(ele):
         te.nomtipo as nomtipo,
         equi.ESTADO as estado,
         equi.SERIAL as serial,
-        equi.ESTACION as estacion
+        equi.ESTACION as estacion,
+        equi.OBSERVACION as observacion
     FROM equipamiento equi
     JOIN TIPOELEMENTO te ON equi.idTIPOELEMENTO = te.idTIPOELEMENTO
     WHERE equi.idEQUIPAMIENTO = {ele}
@@ -252,7 +255,7 @@ def EditaElemento():
     estado = datos['estado']
     serial = datos['serial']
     estacion = datos['estacion']
-    observacion = None 
+    observacion = datos['observacion']
     
     sql = """
     UPDATE EQUIPAMIENTO
@@ -420,7 +423,7 @@ def AsigAmb():
     con.close()
     return(sql)
 
-#INSERTAR EQUIPAMIENTO
+# INSERTAR EQUIPAMIENTO
 @app.route("/i/e", methods=['POST'])
 def InsertEqui():
     idAMBIENTE = request.form['idAMBIENTE']
@@ -428,7 +431,7 @@ def InsertEqui():
     estado = request.form['estado']
     serial = request.form['serial']
     estacion = request.form['estacion']
-    observacion = None
+    observacion = request.form['observacion']
 
     con = sqlite3.connect("novedades.db", timeout=2)
     cursor = con.cursor()
@@ -438,17 +441,14 @@ def InsertEqui():
         INSERT INTO EQUIPAMIENTO (idAMBIENTE, idTIPOELEMENTO, ESTADO, SERIAL, ESTACION, OBSERVACION)
         VALUES (?, ?, ?, ?, ?, ?)
         """
-
         cursor.execute(sql, (idAMBIENTE, idTIPOELEMENTO, estado, serial, estacion, observacion))
         con.commit()
-        print("Insert successful")
+        return jsonify({"message": "Elemento insertado correctamente"}), 200
     except sqlite3.OperationalError as e:
-        print("Database error:", e)
-        return "Database error", 500
+        return jsonify({"message": f"Database error: {e}"}), 500  # Return error message with status code
     finally:
-        con.close()  # Ensure connection is closed
+        con.close()
 
-    return "Insert successful"
 
 
 @app.route("/massive/load", methods=["POST","GET"])
@@ -472,9 +472,12 @@ def massive_load():
                         row['OBSERVACION']
                     ))
 
+        # Commit the transaction and close the connection
         conn.commit()
         conn.close()
-        return "Insert successful"
+
+        # Return a success message in JSON format
+        return jsonify({"message": "Carga masiva exitosa"}), 200
 
 
 
@@ -623,6 +626,17 @@ def novProceso():
 @app.route("/delete/novedades", methods=['DELETE'])
 def deleteAll():
     sql = "DELETE FROM NOVEDADES"
+    con=sqlite3.connect("novedades.db")  
+    cursor=con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()
+    return(sql)
+
+
+@app.route("/delete/equipamiento", methods = ['DELETE'])
+def deleteAllEqui():
+    sql = "DELETE FROM EQUIPAMIENTO"
     con=sqlite3.connect("novedades.db")  
     cursor=con.cursor()
     cursor.execute(sql)
