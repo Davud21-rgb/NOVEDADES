@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 let carga_masiva = document.querySelector("#carga_masiva");
 carga_masiva.addEventListener("click", (event) => {
     event.preventDefault();
@@ -26,18 +25,4 @@ carga_masiva.addEventListener("click", (event) => {
         console.error("There was an error with the submission:", error);
         alert("There was an error with the submission. Please try again.");
     });
-=======
-let carga_masiva = document.querySelector("#carga_masiva");
-carga_masiva.addEventListener("click", (event) => {
-    event.preventDefault();
-
-    const form = carga_masiva.closest('form');
-    const formData = new FormData(form);
-
-    // Send the form data using fetch
-    fetch("http://localhost:8000/massive/load", {
-        method: "POST",
-        body: formData,
-    })
->>>>>>> 9f1feabfb61519029df5a09752a7aab256ef7b25
 })
